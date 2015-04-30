@@ -787,7 +787,7 @@ class Entity(Resource):
         #print self._graph
         #print self._identifier
         #print type(self._graph)
-        self.add_type(PROV.Entity)
+        #self.add_type(PROV.Entity)
 
     def set_was_influenced_by(self, resource):
         """
