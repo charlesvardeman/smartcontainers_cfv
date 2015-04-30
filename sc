@@ -12,7 +12,7 @@ def main():
     cmd = sys.argv
      
     if cmd[1] == "genMeta":
-        docker.bind_ns("test", "http://tw.rpi.edu/ns/test#")
+        docker.bind_ns("test", "http://daspos.crc.nd.edu/test#")
         obj = cmd[2]
         dic = docker.inspect_json("docker inspect "+obj)
         
