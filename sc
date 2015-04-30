@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import provmodified as prov
 import docker
 import json
