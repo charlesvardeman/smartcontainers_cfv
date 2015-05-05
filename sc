@@ -17,7 +17,23 @@ def main():
         dic = docker.inspect_json("docker inspect "+obj)
         
         graph = initialGraph(obj,dic)
-        print(docker.serialize(format="turtle"))
+        g = docker.serialize(format="turtle")
+        g2 = docker.returnGraph()
+        print type(g2)
+        
+        qres = g2.query(
+             """SELECT DISTINCT ?a ?b
+                WHERE {
+                   ?a prov:hadDerivation ?b .     
+                }""")
+                
+        for row in qres:
+                print("%s wasDerivedFrom %s" % row)
+               
+        
+        
+        
+        
     else:
         print "errors"
         
