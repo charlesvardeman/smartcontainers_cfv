@@ -28,37 +28,31 @@ def usage():
 
 def main(argv):
     parser = OptionParser()
-
+    parser.add_option('-g', '--genMeta', dest='image', help='Docker image name')
     try:
-        opts, args = getopt.getopt(argv, "h:g", ["help", "genMeta"])
-    except getopt.GetoptError:
-        usage()
-        sys.exit(2)
+        (options, args) = parser.parse_args()
+    except SystemExit:
+        return
 
-    for opt, arg in opts:
-        if opt in ("-h", "--help"):
-            usage()
-            sys.exit()
-        elif opt in ("-g", "--genMeta"):
-            docker.bind_ns("test", "http://daspos.crc.nd.edu/test#")
-            dic = docker.inspect_json("docker inspect " + arg)
-            # graph = initialGraph(obj,dic)
-            g = docker.serialize(format="turtle")
-            g2 = docker.returnGraph()
+    if options.image:
+        docker.bind_ns("test", "http://daspos.crc.nd.edu/test#")
+        dic = docker.inspect_json("docker inspect " + options.image)
+        # graph = initialGraph(obj,dic)
+        g = docker.serialize(format="turtle")
+        g2 = docker.returnGraph()
 
-            print type(g2)
+        print type(g2)
 
-            qres = g2.query(
-                     """SELECT DISTINCT ?a ?b
-                    WHERE {
-                        ?a prov:hadDerivation ?b .
-                    }""")
+        qres = g2.query(
+                """SELECT DISTINCT ?a ?b
+                WHERE {
+                    ?a prov:hadDerivation ?b .
+                }""")
 
-            for row in qres:
-                print("%s wasDerivedFrom %s" % row)
+        for row in qres:
+            print("%s wasDerivedFrom %s" % row)
 
-
-def initialGraph(obj, dic):
+    def initialGraph(obj, dic):
 
         parent = BNode()
 
