@@ -37,7 +37,7 @@ def main(argv):
     if options.image:
         docker.bind_ns("test", "http://daspos.crc.nd.edu/test#")
         dic = docker.inspect_json("docker inspect " + options.image)
-        # graph = initialGraph(obj,dic)
+        # graph = initialGraph(options.image,dic)
         g = docker.serialize(format="turtle")
         g2 = docker.returnGraph()
 
