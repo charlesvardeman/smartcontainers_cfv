@@ -5,6 +5,7 @@ from provmodified import Entity
 import provmodified as prov
 import json
 import subprocess, shlex
+import collections
 
 DOCKER = Namespace("http://www.example.org/ns/docker#")
 PROV = Namespace("http://www.w3.org/ns/prov#")
@@ -23,11 +24,23 @@ def parse_json_byfile(filename):
     return data[0]
 
 def inspect_json(cmd):
-    print cmd
+    #print cmd
     p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     data = json.loads(stdout)
     return data[0]
+    
+def create_container(cmd):
+    #print cmd
+    p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout
+
+def run(cmd):
+    #print cmd
+    p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout
     
 def get_type(data):
     if "Container" in data.keys():
@@ -63,10 +76,20 @@ def get_parentImage(data):
 
 def returnGraph():
     return default_graph
+    
+def convert(data):
+    if isinstance(data, basestring):
+        return str(data)
+    elif isinstance(data, collections.Mapping):
+        return dict(map(convert, data.iteritems()))
+    elif isinstance(data, collections.Iterable):
+        return type(data)(map(convert, data))
+    else:
+        return data
 
 def serialize(format="xml", bundle=default_graph):
     if format == "json-ld":
-        return bundle.serialize(format='json-ld', indent=4).decode()
+        return bundle.serialize(format='json-ld', indent=0).decode()
     elif format == "nt":
         return bundle.serialize(format='nt').decode()
     else:
@@ -85,13 +108,16 @@ class Image(Entity):
                 super(Image, self).__init__(id, bundle)
                 self.add_type(DOCKER.Image)
                 jsondata = inspect_json(arg)
+                jsondata = convert(jsondata)
                 id = get_id(jsondata)
                 
                 for key in jsondata.keys():
                         if key!="Parent":
                             #if jsondata[key] != "":
                                 #self.set_was_derived_from(URIRef("test:"+jsondata[key]))
-                            self.add(URIRef(DOCKER+key),Literal(jsondata[key]))
+                            content = str(jsondata[key]).replace('"',"'")
+                            content = content.replace("\\","")
+                            self.add(URIRef(DOCKER+key),Literal(content))
                         
         def set_was_derived_from(self,object):
                 #object = DOCKER.Image(object)
