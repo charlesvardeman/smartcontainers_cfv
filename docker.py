@@ -107,9 +107,9 @@ class Image(Entity):
         # Image object initialization         
         def __init__(self, id, bundle=default_graph):
         
-                super(Image, self).__init__(id, bundle)
+                super(Image, self).__init__("urn:sc:"+str(id)+"#image", bundle)
                 self.add_type(DOCKER.Image)
-                
+                          
                 jsondata = inspect_json("docker inspect "+str(id))
                 print jsondata
                 selfid = get_id(jsondata)
@@ -129,13 +129,49 @@ class Image(Entity):
                         else:
                             continue
                         
+        def set_parent(self,parentobject):
+                self.add(DOCKER.hasParent, parentobject)
+                if isinstance(object, BNode):
+                        return
+                else:
+                        parentobject.add(DOCKER.hasChild, self)
+                        
         def set_was_derived_from(self,object):
-                #object = DOCKER.Image(object)
+                self.add(PROV.wasDerivedFrom, object)
+                if isinstance(object, BNode):
+                        return
+                else:
+                        object.add(PROV.hadDerivation, self)
+                        
+class Container(Entity):
+
+        image = ""
+                
+        # Image object initialization         
+        def __init__(self, id, bundle=default_graph):
+        
+                super(Container, self).__init__("urn:sc:"+str(id), bundle)
+                self.add_type(DOCKER.Container)
+                          
+                jsondata = inspect_json("docker inspect "+str(id))
+                print jsondata
+                selfid = get_id(jsondata)
+                self.add(URIRef(DOCKER+"id"), Literal(selfid))
+                
+                for key in jsondata.keys():
+                        if key =="Image":
+                            content = str(jsondata[key])
+                            print content
+                            self.image = content
+                            print self.image
+                        else:
+                            continue
+                        
+        def set_was_derived_from(self,object):
                 self.add(PROV.wasDerivedFrom, object)
                 if isinstance(object, BNode):
                         return
                 else:
                         object.add(PROV.hadDerivation, self)
                            
-                
-               
+

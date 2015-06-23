@@ -84,16 +84,46 @@ def main(argv):
                 dlist.append(line.strip())
         f.close()
         
+        
+        baseimage = ""
         for index in range(len(dlist)):
                 if "cmd:FROM" in dlist[index]:
                         index+=1
                         if "image:" in dlist[index]:
                                 baseimage = dlist[index].split("image:")[1].strip()
                                 print baseimage
-                        graph = initialGraph(baseimage)
+                        baseimage = initialGraph(baseimage)
                         print(docker.serialize(format="turtle"))
+                        index+=1
+                elif "cmd:ADD" in dlist[index]:
+                        index+=1
+                        if "image:" in dlist[index]:
+                                image = dlist[index].split("image:")[1].strip()
+                                image = docker.Image(image)
+                                print image.container
+                                container = docker.Container(image.container)
+                                container.set_was_derived_from(image)
+                                image.set_parent(baseimage)
+                                baseimage = image
+                elif "cmd" in dlist[index]:
+                        index+=1
+                        if "container:" in dlist[index]:
+                                container = dlist[index].split("container:")[1].strip()
+                                container = docker.Container(container)
+                                container.set_was_derived_from(baseimage)
+                        index+=1
+                        if "image:" in dlist[index]:
+                                image = dlist[index].split("image:")[1].strip()
+                                image = docker.Image(image)
+                                image.set_parent(baseimage)
+                                image.set_was_derived_from(container)
+                                baseimage = image
+                        index+=1
+                else:
+                        continue
+                
                         
-        
+        print(docker.serialize(format="turtle"))
         #print len(g2)
         #for each in g2:
         #        print each
@@ -114,7 +144,7 @@ def initialGraph(imageid):
         print "parentid = "+str(parentid)
  
         if str(parentid) != "None":
-               currentimage = docker.Image(imageid)
+               currentimage = docker.Image("urn:sc:"+imageid)
                parentimage = initialGraph(parentid)
                currentimage.set_parent(parentimage)
         else:
