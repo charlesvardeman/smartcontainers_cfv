@@ -91,7 +91,7 @@ def main(argv):
                                 baseimage = dlist[index].split("image:")[1].strip()
                                 print baseimage
                         graph = initialGraph(baseimage)
-                        print(docker.serialize(format="turtle"))
+                        print(prov.serialize(format="turtle"))
                         
         
         #print len(g2)

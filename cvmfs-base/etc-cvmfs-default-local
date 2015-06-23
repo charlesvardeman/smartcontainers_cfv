@@ -1,0 +1,7 @@
+CVMFS_REPOSITORIES="`echo $((echo atlas.cern.ch,atlas-condb.cern.ch,lhcb.cern.ch,cms.cern.ch,oasis.opensciencegrid.org;ls /cvmfs)|sort -u)|tr ' ' ,`"
+#CVMFS_CACHE_BASE=/scratch/var/cache/cvmfs2
+CVMFS_QUOTA_LIMIT=2000
+
+#CVMFS_HTTP_PROXY="http://[YOUR-SQUID-CACHE]:3128"
+#CVMFS_HTTP_PROXY="http://ca-proxy.cern.ch:3128"
+CVMFS_HTTP_PROXY="DIRECT"
