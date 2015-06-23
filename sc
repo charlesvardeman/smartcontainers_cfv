@@ -102,9 +102,11 @@ def main(argv):
                                 image = docker.Image(image)
                                 print image.container
                                 container = docker.Container(image.container)
-                                container.set_was_derived_from(image)
+                                image.set_was_derived_from(container)
+                                container.set_was_derived_from(baseimage)
                                 image.set_parent(baseimage)
                                 baseimage = image
+                        index+=1
                 elif "cmd" in dlist[index]:
                         index+=1
                         if "container:" in dlist[index]:
