@@ -1,19 +1,48 @@
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+"""
+Sample project to be edited.
+"""
+from setuptools import find_packages, setup
 
-config = {
-    'description': 'Docker Smart Containers',
-    'author': 'Charles F Vardeman II',
-    'url': 'https://github.com/charlesvardeman/smartcontainers',
-    'download_url': 'https://github.com/charlesvardeman/smartcontainers',
-    'author_email': 'My email.',
-    'version': '0.02',
-    'install_requires': ['nose'],
-    'packages': ['NAME'],
-    'scripts': [],
-    'name': 'smartcontainers'
-}
+dependencies = ['click']
 
-setup(**config)
+setup(
+    name='smartcontainers,
+    version='0.0.2',
+    url='https://github.com/charlesvardeman/python-mytool',
+    license='BSD',
+    author='Charles Vardeman',
+    author_email='charles.vardeman@gmail.com',
+    description='Tool to track provenance of docker containers',
+    long_description=__doc__,
+    packages=find_packages(exclude=['tests']),
+    include_package_data=True,
+    zip_safe=False,
+    platforms='any',
+    install_requires=dependencies,
+    entry_points={
+        'console_scripts': [
+            'sc= sc.cli:main',
+        ],
+    },
+    classifiers=[
+        # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+        # 'Development Status :: 1 - Planning',
+        'Development Status :: 2 - Pre-Alpha',
+        # 'Development Status :: 3 - Alpha',
+        # 'Development Status :: 4 - Beta',
+        # 'Development Status :: 5 - Production/Stable',
+        # 'Development Status :: 6 - Mature',
+        # 'Development Status :: 7 - Inactive',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: POSIX',
+        'Operating System :: MacOS',
+        'Operating System :: Unix',
+        'Operating System :: Windows',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+    ]
+)
