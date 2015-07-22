@@ -1,0 +1,14 @@
+sudo: true
+language: python
+python:
+    - "2.7"
+
+
+# command to install dependencies
+install: 
+    - "pip install -r requirements.txt"
+# This uses the travis-docker repository at
+# https://github.com/moul/travis-docker
+    - curl -sLo - http://j.mp/install-travis-docker | sh -xe
+# run tests
+script: nosetests
