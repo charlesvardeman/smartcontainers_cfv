@@ -11,4 +11,4 @@ install:
 # https://github.com/moul/travis-docker
     - curl -sLo - http://j.mp/install-travis-docker | sh -xe
 # run tests
-script: nosetests
+script: py.test

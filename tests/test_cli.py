@@ -1,6 +1,6 @@
 import pytest
 from click.testing import CliRunner
-from my_tool import cli
+from sc import cli
 
 
 @pytest.fixture
