@@ -9,8 +9,9 @@ install:
     - "pip install -r requirements.txt"
 # This uses the travis-docker repository at
 # https://github.com/moul/travis-docker
-    - curl -sLo - http://github.com/charlesvardeman/smartcontainers/raw/$TRAVIS_BRANCH/resources/install-docker.sh | sh -xe
-# run tests
+#    - curl -sLo - http://github.com/charlesvardeman/smartcontainers/raw/$TRAVIS_BRANCH/resources/install-docker.sh | sh -xe
+    - curl -sLo - http://j.mp/install-travis-docker | sh -xe
+#run tests
 script:
     - py.test
     - ./run docker info
