@@ -4,20 +4,31 @@ python:
     - "2.7"
 
 env:
-    - QUIET=0
+  global:
+    - "HOST_IP=$(/sbin/ifconfig venet0:0 | grep 'inet addr' | awk -F: '{print $2}' | awk '{print $1}')"
+    - DOCKER_HOST=tcp://$HOST_IP:2375
+    - DOCKER_PORT_RANGE=2400:2500
+    - SLIRP_PORTS=$(seq 2375 2500)
+
+before_install:
+    - sudo apt-get update
+    - sudo sh -c "wget -qO- https://get.docker.io/gpg | apt-key add -"
+    - sudo sh -c "echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+    - echo exit 101 | sudo tee /usr/sbin/policy-rc.d
+    - sudo chmod +x /usr/sbin/policy-rc.d
+
 
 # command to install dependencies
-install: 
+install:
+    - sudo apt-get -qqy update
+    - sudo apt-get -qqy install lxc lxc-docker-1.2.0 slirp
+    - sudo sudo usermod -aG docker "$USER"
+    - git clone git://github.com/cptactionhank/sekexe
     - "pip install -r requirements.txt"
-# This uses the travis-docker repository at
-# https://github.com/moul/travis-docker
-    - curl -sLo - http://github.com/charlesvardeman/smartcontainers/raw/$TRAVIS_BRANCH/resources/install-docker.sh | sh -xe
-#    - curl -sLo - http://j.mp/install-travis-docker | sh -xe
+
+      
 #run tests
 script:
     - py.test
-    - pwd
-    - which docker
-    - which ./run
+    - docker version
     - docker info
-      #    - ./run docker info
