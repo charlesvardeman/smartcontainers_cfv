@@ -19,5 +19,5 @@ script:
     - pwd
     - which docker
     - which ./run
-    - ls -l /bin/sh
-    - ./run docker info
+    - docker info
+      #    - ./run docker info
