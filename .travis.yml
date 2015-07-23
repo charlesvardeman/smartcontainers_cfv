@@ -16,4 +16,7 @@ install:
 #run tests
 script:
     - py.test
+    - pwd
+    - which docker
+    - which ./run
     - ./run docker info
