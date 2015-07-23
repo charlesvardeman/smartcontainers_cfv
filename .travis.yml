@@ -3,6 +3,10 @@ language: python
 python:
     - "2.7"
 
+env:
+    - BRANCH=develop 
+    - DOCKER_BACKEND_FS=host 
+    - DOCKER_STORAGE_DRIVER=aufs
 
 # command to install dependencies
 install: 
