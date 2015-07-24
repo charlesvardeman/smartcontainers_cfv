@@ -1,3 +1,5 @@
+# Docker setup is based on
+# https://github.com/rocker-org/rocker/blob/56cb59cc262e9d2c02f9e11cfacab65f0b659c5f/.travis.yml#L17
 sudo: true
 language: python
 python:
