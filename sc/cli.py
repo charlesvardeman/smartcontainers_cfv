@@ -28,5 +28,9 @@ def docker(command,image):
            click.echo('Command is: %s' % command )
            click.echo('image is: %s' % image)
 
+@cli.command()
+def search():
+    pass
+
 if __name__ == '__main__':
     cli()

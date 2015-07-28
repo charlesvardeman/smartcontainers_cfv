@@ -9,18 +9,23 @@ def runner():
 
 
 def test_cli(runner):
-    result = runner.invoke(cli.main)
+    result = runner.invoke(cli.cli)
     assert result.exit_code == 0
     assert not result.exception
 
 
-def test_cli_with_options(runner):
-    # test option genMeta
-    result = runner.invoke(cli.main, ['--genMeta=linux'])
+def test_search(runner):
+    # test option docker
+    result = runner.invoke(cli.cli, input='search')
     assert not result.exception
     assert result.exit_code == 0
 
-    result = runner.invoke(cli.main,['--create="run /bin/bash"'])
+def test_config(runner):
+    result = runner.invoke(cli.cli,input='config')
     assert not result.exception
     assert result.exit_code == 0
 
+def test_docker(runner):
+    result = runner.invoke(cli.cli,input='docker fedora')
+    assert not result.exception
+    assert result.exit_code == 0
