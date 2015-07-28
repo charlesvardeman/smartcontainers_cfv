@@ -35,4 +35,4 @@ before_script:
 script:
     - docker version
     - docker info
-    - py.test
+    - py.test -v
