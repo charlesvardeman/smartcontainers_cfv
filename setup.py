@@ -1,8 +1,10 @@
 """
 Sample project to be edited.
 """
+from pip.req import parse_requirements
 from setuptools import find_packages, setup
 
+install_reqs = parse_requirements(./requirements.txt)
 dependencies = ['click']
 
 setup(
