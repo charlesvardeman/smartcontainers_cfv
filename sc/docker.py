@@ -1,7 +1,7 @@
 
 
 class Docker:
-    def __init__(self,command,image)
+    def __init__(self, command, image):
         self.command = command
         self.image = image
 
@@ -16,6 +16,6 @@ class Docker:
 
     def capture_command(self):
         line = self.command
-        
+
     def capture_cmd_workflow(self):
         pass

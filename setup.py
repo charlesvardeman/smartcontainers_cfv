@@ -4,14 +4,13 @@ Sample project to be edited.
 from pip.req import parse_requirements
 from setuptools import find_packages, setup
 
-install_reqs = parse_requirements(./requirements.txt)
-dependencies = ['click']
+dependencies = ['click', 'rdflib', 'rdflib-jsonld', 'sarge']
 
 setup(
-    name='smartcontainers,
+    name='smartcontainers',
     version='0.0.2',
-    url='https://github.com/charlesvardeman/python-mytool',
-    license='BSD',
+    url='https://github.com/charlesvardeman/smartcontainers',
+    license='Apache Software License',
     author='Charles Vardeman',
     author_email='charles.vardeman@gmail.com',
     description='Tool to track provenance of docker containers',
@@ -23,7 +22,7 @@ setup(
     install_requires=dependencies,
     entry_points={
         'console_scripts': [
-            'sc= sc.cli:main',
+            'sc= sc.cli:cli',
         ],
     },
     classifiers=[
