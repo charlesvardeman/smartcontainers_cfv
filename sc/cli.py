@@ -11,22 +11,26 @@ class Settings(object):
 
 @click.group()
 def cli():
+    """Smartcontainers for software and data preservation."""
     pass
 
 @cli.command()
 @click.option('--config', '-c', help='Run configure comand')
 def config(config):
+    """Configure smartcontainers."""
     pass
 
 @cli.command()
 @click.argument('command')
-@click.argument('image')
-def docker(command, image):
-    processdocker = Docker(command, image)
+def docker(command):
+    """Execute a docker command."""
+    processdocker = Docker(command)
     processdocker.sanity_check()
 
 @cli.command()
-def search():
+@click.argument('image')
+def search(image):
+    """Search for information in docker metadata."""
     pass
 
 if __name__ == '__main__':
