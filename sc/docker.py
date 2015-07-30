@@ -1,6 +1,8 @@
 from util import which
 from sarge import get_stdout
 
+# We need to docker version greater than 1.6.0 to support
+# the label functionality.
 min_docker_version = '1.6.0'
 
 class Error(Exception):
