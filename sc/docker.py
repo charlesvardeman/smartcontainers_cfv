@@ -20,6 +20,18 @@ class DockerNotFoundError(RuntimeError):
         msg = "Please make sure docker is installed and in your path."
         self.arg = msg
 
+class DockerInsuficientVersionError(RuntimeError):
+    """Exception raised for wrong version of docker command."""
+    def __init__(self, msg):
+        msg = "Please make sure docker is greater than %s" % min_docker_version
+        self.arg = msg
+
+class DockerServerError(RuntimeError):
+    def __init__(self):
+        msg = "Cannot connect to server"
+        self.arg = msg
+
+
 class Docker:
     def __init__(self, command):
         self.command = command
@@ -28,24 +40,27 @@ class Docker:
     def sanity_check(self):
         """sanity_check checks existence and executability of docker."""
         if self.location is None:
-            location = self.find_docker()
-            if location is None:
-                raise DockerNotFoundError
+            self.find_docker()
         self.check_docker_version()
 
     def find_docker(self):
         """find_docker searches paths and common directores to find docker."""
         self.location = which("docker")
+        if self.location is None:
+            raise DockerNotFoundError
         return self.location
 
-    def check_docker_version(self):
+    def check_docker_version(self, min_version=min_docker_version):
+        """check_docker_version makes sure docker is of a min version"""
         output = get_stdout('docker --version')
         # in docker 1.7.1 version is at 2 position in returned string
         version = output.split()[2]
         # remove comma from out put if in string
         if ',' in version:
             version = version[:-1]
-        assert self.ver_cmp(version, min_docker_version) > 0
+        if self.ver_cmp(version, min_version) < 0:
+            raise DockerInsuficientVersionError(
+                 "Please  make sure docker is greater than %s" % min_version)
 
     def do_command(self):
         pass
