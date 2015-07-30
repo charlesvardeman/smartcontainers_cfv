@@ -5,6 +5,10 @@ from sarge import get_stdout, get_stderr
 # the label functionality.
 min_docker_version = '1.6.0'
 
+
+snarf_docker_commands = ['run', 'build']
+
+
 class Error(Exception):
     """Base class for docker module exceptions"""
     pass
