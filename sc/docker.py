@@ -1,5 +1,5 @@
 from util import which
-from sarge import get_stdout
+from sarge import get_stdout, get_stderr
 
 # We need to docker version greater than 1.6.0 to support
 # the label functionality.
@@ -16,7 +16,7 @@ class DockerNotFoundError(RuntimeError):
         msg -- explaination of error
     """
 
-    def __init__(self):
+    def __init__(self, msg):
         msg = "Please make sure docker is installed and in your path."
         self.arg = msg
 
@@ -27,7 +27,7 @@ class DockerInsuficientVersionError(RuntimeError):
         self.arg = msg
 
 class DockerServerError(RuntimeError):
-    def __init__(self):
+    def __init__(self, msg):
         msg = "Cannot connect to server"
         self.arg = msg
 
@@ -42,12 +42,14 @@ class Docker:
         if self.location is None:
             self.find_docker()
         self.check_docker_version()
+        self.check_docker_connection()
 
     def find_docker(self):
         """find_docker searches paths and common directores to find docker."""
         self.location = which("docker")
         if self.location is None:
-            raise DockerNotFoundError
+            raise DockerNotFoundError("Please make sure docker is installed "
+                "and in your path")
         return self.location
 
     def check_docker_version(self, min_version=min_docker_version):
@@ -61,6 +63,16 @@ class Docker:
         if self.ver_cmp(version, min_version) < 0:
             raise DockerInsuficientVersionError(
                  "Please  make sure docker is greater than %s" % min_version)
+
+    def check_docker_connection(self):
+        output = get_stdout('docker images')
+        # This checks if we can get a connection to the remote docker
+        # server. It assumes the output of the "docker images"" command is
+        # of the form: "Get http:///var/run/docker.sock/v1.19/images/json: dial
+        # unix /var/run/docker.sock: no such file or directory. Are you trying
+        # to connect to a TLS-enabled daemon without TLS?"
+        if 'IMAGE ID' not in output:
+            raise DockerServerError("Docker cannot connect to daemon")
 
     def do_command(self):
         pass

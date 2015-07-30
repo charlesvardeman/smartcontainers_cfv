@@ -9,10 +9,8 @@ def test_find_docker():
         dockertester = docker.Docker('help')
         # check that exceptions are being raised.
         os.environ["PATH"] = "NULL"
-        print "PATH orig is: %s" % os.environ["PATH"]
         location = dockertester.find_docker()
     os.environ["PATH"] = oldpath
-    print "PATH should be orig is: %s" % os.environ["PATH"]
     location = dockertester.find_docker()
     assert location is not None
 
@@ -22,6 +20,16 @@ def test_docker_version():
         # This will fail if docker ever gets to version 100
         dockertester = docker.Docker("--help")
         dockertester.check_docker_version("100.100.100")
+
+def test_check_docker_connection():
+    from sc import docker
+    dockertester = docker.Docker("--help")
+    docker_host = os.environ["DOCKER_HOST"]
+    with pytest.raises(docker.DockerServerError):
+        os.environ["DOCKER_HOST"] = "tcp://0.0.0.0"
+        dockertester.check_docker_connection()
+    os.environ["DOCKER_HOST"] = docker_host
+    dockertester.check_docker_connection()
 
 # Test all sanity checks to make sure docker is there.
 def test_sanity():
