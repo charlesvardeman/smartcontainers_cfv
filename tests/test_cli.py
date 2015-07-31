@@ -26,6 +26,6 @@ def test_config(runner):
     assert result.exit_code == 0
 
 def test_docker(runner):
-    result = runner.invoke(cli.cli,input='docker fedora')
+    result = runner.invoke(cli.cli,input='docker --help')
     assert not result.exception
     assert result.exit_code == 0

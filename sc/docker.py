@@ -1,5 +1,5 @@
 from util import which
-from sarge import get_stdout, get_stderr
+from sarge import Command, get_stdout, get_stderr
 
 # We need to docker version greater than 1.6.0 to support
 # the label functionality.
@@ -79,13 +79,29 @@ class Docker:
             raise DockerServerError("Docker cannot connect to daemon")
 
     def do_command(self):
-        pass
+        """do_command is main entry point for capturing docker commands"""
+        # First run the command and capture the output.
+        # For efficiency this should probably change such that
+        # if a command doesn't have a capture handler we execute
+        # the command uncaptured. Most commands are going to be captured
+        # for provenance, so this efficiency concern is probably moot.
+
+        if self.location is None:
+            self.find_docker()
+        cmd_string = str(self.location) + ' ' + self.command
+        p = Command(cmd_string)
+        p.run(async=True)
+
+        for name in snarf_docker_commands:
+            if name in self.command:
+                self.capture_cmd_workflow()
 
     def capture_command(self):
         line = self.command
         return line
 
     def capture_cmd_workflow(self):
+        print "Capture command workflow"
         pass
 
     # Function to compare sematic versioning

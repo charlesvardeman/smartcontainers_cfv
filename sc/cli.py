@@ -20,12 +20,14 @@ def config(config):
     """Configure smartcontainers."""
     pass
 
+# We may have to manually handle --help and pass it to docker
 @cli.command()
 @click.argument('command')
 def docker(command):
     """Execute a docker command."""
     processdocker = Docker(command)
     processdocker.sanity_check()
+    processdocker.do_command()
 
 @cli.command()
 @click.argument('image')

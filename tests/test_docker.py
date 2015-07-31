@@ -36,3 +36,15 @@ def test_sanity():
     from sc import docker
     dockertester = docker.Docker('help')
     dockertester.sanity_check()
+
+# This test should pass through since we don't capture the
+# provenance of help.
+def test_do_command_simple():
+    from sc import docker
+    dockertester = docker.Docker('--help')
+    dockertester.do_command()
+
+def test_do_command_run():
+    from sc import docker
+    dockertester = docker.Docker('run /usr/bin/uname')
+    dockertester.do_command()
