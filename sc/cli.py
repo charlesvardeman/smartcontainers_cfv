@@ -35,5 +35,14 @@ def search(image):
     """Search for information in docker metadata."""
     pass
 
+@cli.command()
+@click.argument('image')
+def publish(image):
+    """Publish a image to a public repository
+
+    :param 'image':
+    """
+    pass
+
 if __name__ == '__main__':
     cli()
