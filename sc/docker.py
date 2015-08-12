@@ -40,6 +40,7 @@ class Docker:
     def __init__(self, command):
         self.command = command
         self.location = None
+        self.imageID = None
 
     def sanity_check(self):
         """sanity_check checks existence and executability of docker."""
@@ -102,6 +103,12 @@ class Docker:
 
     def capture_cmd_workflow(self):
         print "Capture command workflow"
+        pass
+
+    def put_label(self, label):
+        pass
+
+    def get_label(self):
         pass
 
     # Function to compare sematic versioning
