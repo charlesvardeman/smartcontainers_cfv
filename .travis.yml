@@ -35,4 +35,5 @@ before_script:
 script:
     - docker version
     - docker info
+    - docker pull phusion/baseimage
     - py.test -v
