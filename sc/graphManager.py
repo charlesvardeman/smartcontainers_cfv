@@ -1,27 +1,28 @@
 import rdflib
 from rdflib import RDF, Literal, URIRef
-from rdflib.namespace import DC, FOAF
 
 class graphManager:
 	"""docstring for """
 	def __init__(self):
 		# initial graphManager
-		self.graphdict = dict()
-
-	def returnList(self):
-		return self.graphdict
+		self.graphlist = dict()
+		self.graphmeta = dict()
 
 	def addGraph(self,graph):
 		# add one sub-graph to the graph manager 
-		name = "newtest"
-		self.graphdict[name] = graph
+		name = graph.name
+		self.graphlist[name] = graph
+		self.graphmeta[name] = graph.metadata
 
-	def deleteGraph(graph):
-		name = "newtest"
+	def deleteGraph(self,graph):
+		name = graph.name
 		#delete one subgraph to the graph manager
-		del self.graphdict[name]
+		del self.graphlist[name]
+		del self.graphmeta[name]
 
-	def updateGraph(graph):
-		#update graph in the dictionary
-		name = "newtest"
-		self.update({name, graph})
+	def Merge(self):
+		graph = rdflib.ConjunctiveGraph()
+		for each in self.graphlist:
+			for eachtriple in each:
+				graph.add(eachtriple)
+				
