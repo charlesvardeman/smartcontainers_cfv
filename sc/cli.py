@@ -44,5 +44,9 @@ def publish(image):
     """
     pass
 
+@cli.command()
+def package():
+    pass
+
 if __name__ == '__main__':
     cli()
