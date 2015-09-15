@@ -45,7 +45,12 @@ def publish(image):
     pass
 
 @cli.command()
-def package():
+def preserve():
+    """Preserve workflow to container using umbrella.
+
+    :param 'image':
+    """
+
     pass
 
 if __name__ == '__main__':
