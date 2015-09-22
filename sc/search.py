@@ -1,6 +1,5 @@
 from colorama import Fore, Style
 import orcid
-import requests
 
 # For testing
 import simplejson as json
@@ -160,14 +159,6 @@ class OrcidSearchResults(object):
 
         summary = self.api.read_record_public(query, 'activities')
         return summary
-
-    def turtle_search(self, orcid_id):
-        headers = {'Accept': 'text/turtle'}
-        url = 'http://orcid.org/' + str(orcid_id)
-        payload = {'key': 'data'}
-        response = requests.get(url, headers=headers, data=payload)
-
-        return response.text
 
     def print_basic(self):
         """Print basic search results for better user readability.

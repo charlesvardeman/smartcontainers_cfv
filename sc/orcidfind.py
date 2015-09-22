@@ -1,11 +1,11 @@
 """CLI program to search for a user's Orcid ID, utilizes the python-orcid library
     and Orcid API.
 """
-from search import OrcidSearchResults, Fore, Style
+from search import OrcidSearchResults
 import click
 import simplejson as json
 import io
-from operator import itemgetter
+from configmanager import ConfigManager
 
 # For testing
 from pprintpp import pprint as pp
@@ -13,8 +13,9 @@ from pprintpp import pprint as pp
 SEARCH_VERSION = "/v1.2"
 API_VERSION = "/v2.0_rc1"
 
-__version__ = "0.1_alpha"
+__version__ = "0.1"
 __author__ = 'cwilli34'
+
 
 # Print program version
 def print_version(ctx, param, value):
@@ -23,12 +24,12 @@ def print_version(ctx, param, value):
     click.echo(__version__)
     ctx.exit()
 
+
 # Initialize click
 @click.command()
 @click.option('--version', is_flag=True, callback=print_version, expose_value=False, is_eager=True)
 @click.option('-s', is_flag=True, help='Basic search for user (when Orcid ID is unknown)')
 @click.option('-a', is_flag=True, help='Review a user profile by Orcid ID')
-
 def search_type(s, a):
     """Program main function that accepts click arguments. This function will call the basic_search() or
         advanced_search() functions
@@ -106,7 +107,8 @@ def search_type(s, a):
               '4. Funding\n'
               '5. Peer Review\n'
               '6. Work\n'
-              '7. Create a RDF configuration file\n')
+              '7. Create a RDF configuration file\n'
+              '8. Read a RDF configuration file\n')
         print('*Summary data is in JSON format. Sometimes a large amount of data can be passed from the '
               'Orcid database. Because of this all output will be written to an external text file.  The text '
               'file will be saved in the program\'s directory.\n')
@@ -114,7 +116,6 @@ def search_type(s, a):
         print('')
 
         record_type = None
-        put_code = None
 
         # Once record_type choice is chosen, and/or put-code is entered, advanced_search() function is called.
         if selection == '1':
@@ -130,12 +131,15 @@ def search_type(s, a):
         elif selection == '6':
             record_type = 'work'
         elif selection == '7':
-            record_type = 'rdf'
+            record_type = 'write-rdf'
+        elif selection == '8':
+            record_type = 'read-rdf'
 
         query = click.prompt('Please enter the Orcid ID')
         print('')
 
-        advanced_search(query, record_type, put_code)
+        advanced_search(query, record_type)
+
 
 def basic_search(query):
     """ Function for initializing a search for an orcid id.  Utilizes OrcidSearchResults() class
@@ -179,7 +183,8 @@ def basic_search(query):
         else:
             print('You did not pick an appropriate answer.')
 
-def advanced_search(query, record_type, put_code):
+
+def advanced_search(query, record_type):
     """ Function for initializing an advanced search for an orcid id.  Utilizes OrcidSearchResults() class
         from search.py
 
@@ -189,9 +194,6 @@ def advanced_search(query, record_type, put_code):
         Orcid ID inputted by user
     :param record_type: string
         User selected record_type that they want to display.  Must have corresponding put-code
-    :param put_code: string
-        User must enter a put_code if record_type is anything other than 'activities'.  Put-code
-        must correspond with record_type
 
     Returns
     -------
@@ -205,35 +207,19 @@ def advanced_search(query, record_type, put_code):
     search_obj = OrcidSearchResults(sandbox=True)
 
     # Will be 'not None' only if record type is other than 'activities'
-    if record_type is 'rdf':
-        # new_config = Configuration()
-
-        b_query = '"' + query + '"'
-
-        b_results = search_obj.basic_search(b_query)
-
-        # pp(b_results)
-
-        a_results = search_obj.advanced_search(query)
-
-        # pp(a_results)
-
-        for x in a_results['employments']['employment-summary']:
-            last_modified = max(x['last-modified-date'].iteritems(), key=itemgetter(1))
-
-            # pp(institution)
-
-        # try:
-        #     pp(institution)
-        # except:
-        #     pass
-
-        # new_config.create_config()
+    if record_type == 'write-rdf':
+        config = ConfigManager(query, sandbox=True)
+        config.write_config()
+        print('The configuration file has been written!\n')
+    elif record_type == 'read-rdf':
+        config = ConfigManager(query, sandbox=True)
+        rdf_graph = config.read_config()
+        print rdf_graph
     elif record_type is not None:
         put_code = click.prompt('Please enter the put-code (must match record type)')
         results = search_obj.advanced_search(query, record_type, put_code)
         print('')
-        print(json.dumps(results, sort_keys = True, indent=4, ensure_ascii=False))
+        print(json.dumps(results, sort_keys=True, indent=4, ensure_ascii=False))
 
         # Ask user if they would like to send this information to file
         while True:
@@ -242,7 +228,7 @@ def advanced_search(query, record_type, put_code):
             if send_to_file == ('y' or 'Y' or 'yes' or 'YES' or 'Yes'):
                 with io.open(query + '_' + record_type + '_' + put_code + '.json', 'w', encoding='utf8') \
                         as json_file:
-                    data = json.dumps(results, json_file, sort_keys = True, indent=4, ensure_ascii=False)
+                    data = json.dumps(results, json_file, sort_keys=True, indent=4, ensure_ascii=False)
                     # unicode(data) auto-decodes data to unicode if str
                     json_file.write(unicode(data))
                 break
@@ -255,7 +241,7 @@ def advanced_search(query, record_type, put_code):
         results = search_obj.advanced_search(query)
 
         with io.open(query + '.json', 'w', encoding='utf8') as json_file:
-            data = json.dumps(results, json_file, sort_keys = True, indent=4, ensure_ascii=False)
+            data = json.dumps(results, json_file, sort_keys=True, indent=4, ensure_ascii=False)
             # unicode(data) auto-decodes data to unicode if str
             json_file.write(unicode(data))
 
@@ -272,7 +258,7 @@ def advanced_search(query, record_type, put_code):
         else:
             print('You did not pick an appropriate answer.')
 
-if __name__=='__main__':
+if __name__ == '__main__':
     search_type()
 
 ####################  Extra testing ###########################################
