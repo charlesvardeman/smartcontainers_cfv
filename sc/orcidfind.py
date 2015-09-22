@@ -1,8 +1,11 @@
-__author__ = 'cwilli34'
-
-from search import OrcidSearchResults
+"""CLI program to search for a user's Orcid ID, utilizes the python-orcid library
+    and Orcid API.
+"""
+from search import OrcidSearchResults, Fore, Style
 import click
 import simplejson as json
+import io
+from operator import itemgetter
 
 # For testing
 from pprintpp import pprint as pp
@@ -11,44 +14,109 @@ SEARCH_VERSION = "/v1.2"
 API_VERSION = "/v2.0_rc1"
 
 __version__ = "0.1_alpha"
+__author__ = 'cwilli34'
 
+# Print program version
 def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
     click.echo(__version__)
     ctx.exit()
 
-# def abort_if_false(ctx, param, value):
-#     if not value:
-#         ctx.abort()
-
+# Initialize click
 @click.command()
 @click.option('--version', is_flag=True, callback=print_version, expose_value=False, is_eager=True)
 @click.option('-s', is_flag=True, help='Basic search for user (when Orcid ID is unknown)')
 @click.option('-a', is_flag=True, help='Review a user profile by Orcid ID')
 
 def search_type(s, a):
+    """Program main function that accepts click arguments. This function will call the basic_search() or
+        advanced_search() functions
+
+    Parameters
+    ----------
+    :param s: flag
+        When s is true, click prompts will be executed and the basic_search() function will be executed.
+    :param a: flag
+        When a is true, click prompts will be executed and the advanced_search() function will be executed
+    """
     if s:
-        query = click.prompt('Please enter your search terms')
+        # Prompt and get search terms
+        print('* You can leave fields blank *')
+        query = {
+            'first_name': click.prompt('Please enter a first name', default='', show_default=False),
+            'last_name': click.prompt('Please enter a last name', default='', show_default=False),
+            'email': click.prompt('Please enter an email', default='', show_default=False),
+            'institution': click.prompt('Please enter an institution', default='', show_default=False),
+            'department': click.prompt('Please enter a department', default='', show_default=False)
+        }
         print('')
-        basic_search(query)
+
+        first_name = query['first_name']
+        last_name = query['last_name']
+        email = query['email']
+        institution = query['institution']
+        department = query['department']
+
+        # Configures search string for lucene formatting
+        if first_name and last_name:
+            first_name = first_name + ' AND '
+        elif first_name and (email or institution or department):
+            first_name = first_name + ' AND '
+        if last_name and (email or institution or department):
+            last_name = last_name + ' AND '
+        if not last_name and not first_name:
+            if email and (institution or department):
+                email = email + ' AND '
+            if institution and department:
+                institution = '"' + institution + '"' + ' AND '
+            elif (email and institution and not department) or institution:
+                institution = '"' + institution + '"'
+            if department:
+                department = '"' + department + '"'
+        else:
+            if email and (institution or department):
+                email = '(' + email + ' AND '
+            if not email and institution and department:
+                institution = '(' + '"' + institution + '"' + ' AND '
+            elif email and institution and not department:
+                institution = '"' + institution + '"' + ')'
+            elif email and institution and department:
+                institution = '"' + institution + '"' + ' AND '
+            elif institution:
+                institution = '"' + institution + '"'
+            if (email or institution) and department:
+                department = '"' + department + '"' + ')'
+            elif department:
+                department = '"' + department + '"'
+
+        search_terms = first_name + last_name + email + institution + department
+
+        # View string input
+        print search_terms + '\n'
+
+        # Call basic_search() function
+        basic_search(search_terms)
     elif a:
+        # Print selection options, and prompt for choice
         print('There are several ways of getting summarized information on an Orcid user:\n\n'
               '1. Summary* (A complete profile of the user)\n'
               '2. Education\n'
               '3. Employment\n'
               '4. Funding\n'
               '5. Peer Review\n'
-              '6. Work\n')
+              '6. Work\n'
+              '7. Create a RDF configuration file\n')
         print('*Summary data is in JSON format. Sometimes a large amount of data can be passed from the '
               'Orcid database. Because of this all output will be written to an external text file.  The text '
               'file will be saved in the program\'s directory.\n')
         selection = click.prompt('Please enter your selection')
+        print('')
+
         record_type = None
         put_code = None
 
-        print('')
-
+        # Once record_type choice is chosen, and/or put-code is entered, advanced_search() function is called.
         if selection == '1':
             record_type = None
         if selection == '2':
@@ -61,59 +129,143 @@ def search_type(s, a):
             record_type = 'peer-review'
         elif selection == '6':
             record_type = 'work'
+        elif selection == '7':
+            record_type = 'rdf'
 
         query = click.prompt('Please enter the Orcid ID')
+        print('')
 
         advanced_search(query, record_type, put_code)
 
 def basic_search(query):
-    """ Function for initializing a search for an orcid id"""
-    terms = query.replace(' ', ' AND ')
-    print terms
+    """ Function for initializing a search for an orcid id.  Utilizes OrcidSearchResults() class
+        from search.py
 
-    search_obj = OrcidSearchResults()
-    results = search_obj.basic_search(terms)
+    Parameters
+    ----------
+    :param query: string
+        Query built from user input.
+
+    Returns
+    -------
+    :returns: no return.
+    """
+
+    # Initialize and populate all variables and dictionaries
+    search_obj = OrcidSearchResults(sandbox=True)
+    search_obj.basic_search(query)
     actual_total = search_obj.actual_total_results
     total_results = search_obj.total_results
-
     # orcid_id = search_obj.orcid_id
 
+    # Print results
     search_obj.print_basic()
 
+    # Print total results if actual results are above 100
     if total_results < actual_total:
         print 'Actual Total Results: {}'.format(actual_total)
+        print('')
+
+    # Ask user if they would like to search again.
+    while True:
+        new_instance = click.prompt('Would you like to search again [y/N]?')
+        print('')
+
+        if new_instance == ('y' or 'Y' or 'yes' or 'YES' or 'Yes'):
+            search_type()
+            break
+        elif new_instance == ('n' or 'N' or 'no' or 'NO' or 'No'):
+            exit(1)
+        else:
+            print('You did not pick an appropriate answer.')
 
 def advanced_search(query, record_type, put_code):
-    search_obj = OrcidSearchResults()
+    """ Function for initializing an advanced search for an orcid id.  Utilizes OrcidSearchResults() class
+        from search.py
 
-    if record_type is not None:
+    Parameters
+    ----------
+    :param query: string
+        Orcid ID inputted by user
+    :param record_type: string
+        User selected record_type that they want to display.  Must have corresponding put-code
+    :param put_code: string
+        User must enter a put_code if record_type is anything other than 'activities'.  Put-code
+        must correspond with record_type
+
+    Returns
+    -------
+    :returns: no return.
+        Will write to file for a 'activities' record, or print record to screen for all other records.
+        Will prompt user to see if they would like to write customer records to file.
+
+        A large amount of information can be gathered for a 'activities' record_type.  The only option
+        allowed at this time is for the JSON output to be written to a JSON file.
+    """
+    search_obj = OrcidSearchResults(sandbox=True)
+
+    # Will be 'not None' only if record type is other than 'activities'
+    if record_type is 'rdf':
+        # new_config = Configuration()
+
+        b_query = '"' + query + '"'
+
+        b_results = search_obj.basic_search(b_query)
+
+        # pp(b_results)
+
+        a_results = search_obj.advanced_search(query)
+
+        # pp(a_results)
+
+        for x in a_results['employments']['employment-summary']:
+            last_modified = max(x['last-modified-date'].iteritems(), key=itemgetter(1))
+
+            # pp(institution)
+
+        # try:
+        #     pp(institution)
+        # except:
+        #     pass
+
+        # new_config.create_config()
+    elif record_type is not None:
         put_code = click.prompt('Please enter the put-code (must match record type)')
         results = search_obj.advanced_search(query, record_type, put_code)
         print('')
         print(json.dumps(results, sort_keys = True, indent=4, ensure_ascii=False))
 
+        # Ask user if they would like to send this information to file
         while True:
             send_to_file = click.prompt('Would you like to send this output to a file [y/N]?')
 
             if send_to_file == ('y' or 'Y' or 'yes' or 'YES' or 'Yes'):
-                with open(query + '_' + record_type + '_' + put_code + '.json', 'w') as outfile:
-                    json.dump(results, outfile, sort_keys = True, indent=4, ensure_ascii=False)
+                with io.open(query + '_' + record_type + '_' + put_code + '.json', 'w', encoding='utf8') \
+                        as json_file:
+                    data = json.dumps(results, json_file, sort_keys = True, indent=4, ensure_ascii=False)
+                    # unicode(data) auto-decodes data to unicode if str
+                    json_file.write(unicode(data))
                 break
             elif send_to_file == ('n' or 'N' or 'no' or 'NO' or 'No'):
                 break
             else:
                 print('You did not pick an appropriate answer.')
     else:
+        # When 'activities' (option 1 - summary) is selected, prints to file
         results = search_obj.advanced_search(query)
 
-        with open(query + '.json', 'w') as outfile:
-            json.dump(results, outfile, sort_keys = True, indent=4, ensure_ascii=False)
+        with io.open(query + '.json', 'w', encoding='utf8') as json_file:
+            data = json.dumps(results, json_file, sort_keys = True, indent=4, ensure_ascii=False)
+            # unicode(data) auto-decodes data to unicode if str
+            json_file.write(unicode(data))
 
+    # Ask user if they would like to go back to the advanced search selection menu
     while True:
         new_instance = click.prompt('Back to \'Selection\' menu [y/exit]?')
+        print('')
 
         if new_instance == ('y' or 'Y' or 'yes' or 'YES' or 'Yes'):
-            search_type(s=False, a=True)
+            search_type()
             break
         elif new_instance == ('exit' or 'EXIT' or 'Exit'):
             exit(1)
