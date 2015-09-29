@@ -152,7 +152,7 @@ class Docker:
                 raise DockerImageError
             while(True):
                 try:
-                    json_obj = json.loads(line)
+                    json_obj = json.loads()
 
                     if not self.stream.read(1) in [',',']']:
                         raise Exception('JSON seems to be malformed: object is not followed by comma (,) or end of list (]).')
