@@ -204,11 +204,5 @@ class OrcidSearchResults(object):
 
             print("")
 
+    # Possible to create advance printing dialogs so less code is required in the calling program
     # def print_advance(self):
-
-# class ComplexEncoder(json.JSONEncoder):
-#     def default(self, obj):
-#         if isinstance(obj, complex):
-#             return [obj.real, obj.imag]
-#         # Let the base class default method raise the TypeError
-#         return json.JSONEncoder.default(self, obj)
