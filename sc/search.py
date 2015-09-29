@@ -6,6 +6,7 @@ import simplejson as json
 
 __author__ = 'cwilli34'
 
+
 class OrcidSearchResults(object):
 
     """Using the Orcid Public API."""
@@ -106,7 +107,7 @@ class OrcidSearchResults(object):
 
         return self.s_dict
 
-        ######## For testing ###############
+        # For testing ###
         # results = self.api.search_public(query)
         # pp(results)
 

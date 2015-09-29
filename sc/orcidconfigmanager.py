@@ -31,7 +31,7 @@ class OrcidConfig(object):
 
         Parameters
         ----------
-        :param orcid_id: None
+        :param: None
 
         Returns
         -------

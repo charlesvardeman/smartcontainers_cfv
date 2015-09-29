@@ -33,7 +33,7 @@ class ConfigManager(object):
 
         Parameters
         ----------
-        :param orcid_id: None
+        :param: None
 
         Returns
         -------
@@ -55,7 +55,7 @@ class ConfigManager(object):
 
         Parameters
         ----------
-        :param orcid_id: None
+        :param: None
 
         Returns
         -------
