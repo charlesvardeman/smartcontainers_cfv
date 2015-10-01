@@ -2,8 +2,7 @@ from util import which
 from sarge import Command, Capture, get_stdout, get_stderr, capture_stdout
 from io import TextIOWrapper
 import re
-import simplejson as json
-from simplejson import JSONDecodeError
+import json
 
 # We need to docker version greater than 1.6.0 to support
 # the label functionality.
@@ -52,6 +51,7 @@ class Docker:
         self.location = self.find_docker()
         self.imageID = None
         self.container = None
+        self.metadata = {}
 
     def sanity_check(self):
         """sanity_check checks existence and executability of docker."""
@@ -144,27 +144,22 @@ class Docker:
         # if 'No such image' in p.stdout:
         #    raise DockerImageError
         # data = [json.loads(str(item)) for item in p.stdout.readline().strip().split('\n')]
+        json_block = []
         line = p.stdout.readline()
         while(True):
-            line = p.stdout.readline()
             if not line: break
             if 'no such image' in line:
                 raise DockerImageError
-            while(True):
-                try:
-                    json_obj = json.loads()
-
-                    if not self.stream.read(1) in [',',']']:
-                        raise Exception('JSON seems to be malformed: object is not followed by comma (,) or end of list (]).')
-                    return json_obj
-                except JSONDecodeError:
-                    next_char = self.stream.read(1)
-                    read_buffer += next_char
-                    while next_char != '}':
-                        next_char = self.stream.read(1)
-                        if next_char == '':
-                            raise StopIteration
-                        read_buffer += next_char
+            # Stupid sarge appears to add a blank line between
+            # json statements. This checks for a blank line and
+            # cycles to the next line if it is blank.
+            if re.match(r'^\s*$', line):
+                line = p.stdout.readline()
+                continue
+            json_block.append(line)
+            line = p.stdout.readline()
+        s = ''.join(json_block)
+        self.metadata = json.loads(s)
 
     def set_image(self, image):
         """set_image
