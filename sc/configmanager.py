@@ -22,8 +22,10 @@ class ConfigManager(object):
         :param sandbox: boolean
             Should the sandbox be used. True by default. False (default) indicates production mode.
         """
-        self.file = 'orcid_turtle.SCconfig'
-        self.exist = os.path.exists(self.file)
+        self.dir_path = os.environ["HOME"] + "/.sc"
+        self.filename = 'orcid_turtle.SCconfig'
+        self.config_path = self.dir_path + self.filename
+        self.exist = os.path.exists(self.config_path)
         self.config = OrcidConfig(orcid_id, sandbox)
         self.ctgfile = None
 
@@ -41,10 +43,10 @@ class ConfigManager(object):
         """
         if self.exist:
             # Open existing file, read and write
-            self.ctgfile = open(self.file, 'w+')
+            self.ctgfile = open(self.config_path, 'w+')
         else:
             # Create config file, write
-            self.ctgfile = open(self.file, 'w')
+            self.ctgfile = open(self.config_path, 'w')
         profile = self.config.get_turtle()
         self.ctgfile.write(str(profile))
         self.ctgfile.close()
@@ -71,7 +73,7 @@ class ConfigManager(object):
             return message
         else:
             # Open existing file, read and write
-            self.ctgfile = open(self.file, 'r')
+            self.ctgfile = open(self.config_path, 'r')
             # Variable data is not used (This is for customizing the script later for future configuration).
             data = self.ctgfile.read()
             result = g.parse(self.ctgfile, format='turtle')
