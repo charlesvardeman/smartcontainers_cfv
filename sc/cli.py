@@ -77,7 +77,7 @@ def orcid(i, e):
 
 def config_by_search():
     """Create a RDF Graph configuration file by searching for Orcid user."""
-    search_type(args=['-b'])
+    search_type(args=['-c'])
 
 def config_by_id(id):
     """Create a RDF Graph configuration file by Orcid ID."""

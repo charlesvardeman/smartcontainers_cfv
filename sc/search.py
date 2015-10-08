@@ -285,7 +285,7 @@ class OrcidSearchResults(object):
                 for e in email:
                     email_list.insert(e, email[e])
 
-            print(count + ', ' + id_text + ', ' + f_name_text + ' ' + l_name_text + (', ' if email_list else '') +  ', '.join(email_list))
+            print(count + ', ' + id_text + ', ' + f_name_text + ' ' + l_name_text + (' (' if email_list else '') +  ', '.join(email_list) + (') ' if email_list else ''))
 
         print('')
 

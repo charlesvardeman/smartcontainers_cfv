@@ -100,15 +100,12 @@ def search_type(a, b, c):
         # View string input
         print search_terms + '\n'
 
-        # Call basic_search_config() function
-        basic_search_config(search_terms)
-
-        # if c:
-        #     # Call basic_search_config() function
-        #     basic_search_config(search_terms)
-        # else:
-        #     # Call basic_search() function
-        #     basic_search(search_terms)
+        if c:
+            # Call basic_search_config() function
+            basic_search_config(search_terms)
+        else:
+            # Call basic_search() function
+            basic_search(search_terms)
 
 
     elif a:
