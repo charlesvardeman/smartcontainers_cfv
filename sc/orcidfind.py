@@ -6,6 +6,8 @@ import click
 import simplejson as json
 import io
 from configmanager import ConfigManager
+from os.path import expanduser
+import os
 
 # For testing
 from pprintpp import pprint as pp
@@ -16,6 +18,8 @@ API_VERSION = "/v2.0_rc1"
 __version__ = "0.1"
 __author__ = 'cwilli34'
 
+# Set sandbox variable
+sandbox = True
 
 # Print program version
 def print_version(ctx, param, value):
@@ -24,13 +28,13 @@ def print_version(ctx, param, value):
     click.echo(__version__)
     ctx.exit()
 
-
 # Initialize click
 @click.command()
 @click.option('--version', is_flag=True, callback=print_version, expose_value=False, is_eager=True)
-@click.option('-s', is_flag=True, help='Basic search for user (when Orcid ID is unknown)')
 @click.option('-a', is_flag=True, help='Review a user profile by Orcid ID')
-def search_type(s, a):
+@click.option('-b', is_flag=True, help='Basic search for user (when Orcid ID is unknown)')
+@click.option('-c', is_flag=True, help='Basic search and automated RDF config file creation (when Orcid ID is unknown)')
+def search_type(a, b, c):
     """Program main function that accepts click arguments. This function will call the basic_search() or
         advanced_search() functions
 
@@ -41,7 +45,7 @@ def search_type(s, a):
     :param a: flag
         When a is true, click prompts will be executed and the advanced_search() function will be executed
     """
-    if s:
+    if b or c:
         # Prompt and get search terms
         print('* You can leave fields blank *')
         query = {
@@ -96,8 +100,17 @@ def search_type(s, a):
         # View string input
         print search_terms + '\n'
 
-        # Call basic_search() function
-        basic_search(search_terms)
+        # Call basic_search_config() function
+        basic_search_config(search_terms)
+
+        # if c:
+        #     # Call basic_search_config() function
+        #     basic_search_config(search_terms)
+        # else:
+        #     # Call basic_search() function
+        #     basic_search(search_terms)
+
+
     elif a:
         # Print selection options, and prompt for choice
         print('There are several ways of getting summarized information on an Orcid user:\n\n'
@@ -142,8 +155,7 @@ def search_type(s, a):
 
 
 def basic_search(query):
-    """ Function for initializing a search for an orcid id.  Utilizes OrcidSearchResults() class
-        from search.py
+    """ Function for initializing a search for an orcid id.
 
     Parameters
     ----------
@@ -156,7 +168,7 @@ def basic_search(query):
     """
 
     # Initialize and populate all variables and dictionaries
-    search_obj = OrcidSearchResults(sandbox=True)
+    search_obj = OrcidSearchResults(sandbox)
     search_obj.basic_search(query)
     actual_total = search_obj.actual_total_results
     total_results = search_obj.total_results
@@ -176,13 +188,63 @@ def basic_search(query):
         print('')
 
         if new_instance == ('y' or 'Y' or 'yes' or 'YES' or 'Yes'):
-            search_type()
+            search_type(args = ['-b'])
             break
         elif new_instance == ('n' or 'N' or 'no' or 'NO' or 'No'):
             exit(1)
         else:
             print('You did not pick an appropriate answer.')
 
+def basic_search_config(query):
+    """ Function for initializing a search for an orcid id, and then creates a RDF
+        configuration file automatically.
+
+    Parameters
+    ----------
+    :param query: string
+        Query built from user input.
+
+    Returns
+    -------
+    :returns: no return.
+    """
+
+    # Initialize and populate all variables and dictionaries
+    search_obj = OrcidSearchResults(sandbox)
+    search_obj.basic_search(query)
+    actual_total = search_obj.actual_total_results
+    total_results = search_obj.total_results
+    # orcid_id = search_obj.orcid_id
+
+    # Print results
+    search_obj.print_basic_alt()
+
+    # Print total results if actual results are above 100
+    if total_results < actual_total:
+        print 'Actual Total Results: {}'.format(actual_total)
+        print('')
+
+    # Get list of Orcid ID's from results
+    id_list = search_obj.orcid_id
+
+    # Write config if only one result was found
+    if total_results == 1:
+        orcid_id = id_list[0]
+        config = ConfigManager(orcid_id=orcid_id, sandbox=sandbox)
+        config.write_config()
+    # Allow user to select Orcid profile if multiple results are found
+    else:
+        id_dict = dict()
+        # Get list of Orcid ID's and correspond count with ID
+        for i, id in enumerate(id_list):
+            id_dict[i + 1] = id
+
+        selected = click.prompt('Select the result # of the record')
+        print("")
+        orcid_id = id_dict[int(selected)]
+
+        config = ConfigManager(orcid_id=orcid_id, sandbox=sandbox)
+        config.write_config()
 
 def advanced_search(query, record_type):
     """ Function for initializing an advanced search for an orcid id.  Utilizes OrcidSearchResults() class
@@ -204,15 +266,14 @@ def advanced_search(query, record_type):
         A large amount of information can be gathered for a 'activities' record_type.  The only option
         allowed at this time is for the JSON output to be written to a JSON file.
     """
-    search_obj = OrcidSearchResults(sandbox=True)
+    search_obj = OrcidSearchResults(sandbox)
 
     # Will be 'not None' only if record type is other than 'activities'
     if record_type == 'write-rdf':
-        config = ConfigManager(query, sandbox=True)
+        config = ConfigManager(orcid_id=query, sandbox=sandbox)
         config.write_config()
-        print('The configuration file has been written!\n')
     elif record_type == 'read-rdf':
-        config = ConfigManager(query, sandbox=True)
+        config = ConfigManager(orcid_id=query, sandbox=sandbox)
         rdf_graph = config.read_config()
         print rdf_graph
     elif record_type is not None:
@@ -240,7 +301,16 @@ def advanced_search(query, record_type):
         # When 'activities' (option 1 - summary) is selected, prints to file
         results = search_obj.advanced_search(query)
 
-        with io.open(query + '.json', 'w', encoding='utf8') as json_file:
+        home_path = expanduser("~")
+        dir_path = home_path + "/.sc/"
+        filename = query + '.json'
+        if os.path.exists(dir_path):
+            config_path = dir_path + filename
+        else:
+            os.mkdir(home_path + "/.sc/")
+            config_path = dir_path + filename
+
+        with io.open(config_path, 'w', encoding='utf8') as json_file:
             data = json.dumps(results, json_file, sort_keys=True, indent=4, ensure_ascii=False)
             # unicode(data) auto-decodes data to unicode if str
             json_file.write(unicode(data))
@@ -251,7 +321,7 @@ def advanced_search(query, record_type):
         print('')
 
         if new_instance == ('y' or 'Y' or 'yes' or 'YES' or 'Yes'):
-            search_type()
+            search_type(args = ['-a'])
             break
         elif new_instance == ('exit' or 'EXIT' or 'Exit'):
             exit(1)
@@ -260,41 +330,3 @@ def advanced_search(query, record_type):
 
 if __name__ == '__main__':
     search_type()
-
-####################  Extra testing ###########################################
-# search_obj = OrcidSearchResults()
-# results = search_obj.search('coull AND brent')
-# actual_total = search_obj.actual_total_results
-# total_results = search_obj.total_results
-# orcid_id = search_obj.orcid_id
-#
-#
-# search_obj.print_results()
-#
-# pp(results)
-# pp(orcid_id)
-# pp(total_results)
-# pp(actual_total)
-
-
-# Examples
-# Get the summary
-# summary = api.read_record_public('0000-0003-1519-9457', 'activities')
-
-# Get a specific record
-# employment = api.read_record_public('0000-0003-1519-9457', 'employment', '16372')
-# school = api.read_record_public('0000-0003-1519-9457', 'education', '16371')
-
-# Print - For Testing
-# pp(employment)
-# pp(school)
-# pp(search_results)
-# print school['organization']['name']
-
-
-# search_results = api.search_public('Notre Dame')['orcid-search-results']['orcid-search-result'][0]['orcid-profile']['orcid-bio']['personal-details']['family-name']['value']
-
-# school_encoded = ComplexEncoder().encode(school['organization']['address']['city'])
-# print school_encoded.strip('"')
-# print json.dumps(school['organization']['name'])
-###############################################################################

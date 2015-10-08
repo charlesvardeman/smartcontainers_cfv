@@ -1,8 +1,14 @@
 import click
 import os
+from configmanager import ConfigManager
 from docker import Docker
+from orcidfind import OrcidSearchResults, search_type
+from pprintpp import pprint as pp
+
 # from ._version import __version__
 
+# Set sandbox variable
+sandbox = True
 
 class Settings(object):
     def __init__(self, home=None, debug=False):
@@ -15,7 +21,7 @@ def cli():
     pass
 
 @cli.command()
-@click.option('--config', '-c', help='Run configure comand')
+@click.option('--config', '-c', help='Run configure command')
 def config(config):
     """Configure smartcontainers."""
     pass
@@ -38,7 +44,8 @@ def search(image):
 @cli.command()
 @click.argument('image')
 def publish(image):
-    """Publish a image to a public repository
+    """Publish a image to a public repository.
+
 
     :param 'image':
     """
@@ -48,10 +55,40 @@ def publish(image):
 def preserve():
     """Preserve workflow to container using umbrella.
 
+
     :param 'image':
     """
-
     pass
 
+########  Orcid Commands  ###############
+@cli.command()
+@click.option('-i', default=None, help='Search for an Orcid profile by Orcid ID.')
+@click.option('-e', default=None, help='Search for an Orcid profile by email.')
+def orcid(i, e):
+    """Create a config file, based on an Orcid ID."""
+    if i:
+        config_by_id(i)
+    elif e:
+        config_by_email(e)
+    elif i == None and e == None:
+        config_by_search()
+    else:
+        print('You have not selected a viable option.')
+
+def config_by_search():
+    """Create a RDF Graph configuration file by searching for Orcid user."""
+    search_type(args=['-b'])
+
+def config_by_id(id):
+    """Create a RDF Graph configuration file by Orcid ID."""
+    config = ConfigManager(orcid_id=id, sandbox=sandbox)
+    config.write_config()
+
+def config_by_email(email):
+    """Create a RDF Graph configuration file by Orcid email."""
+    config = ConfigManager(orcid_email=email, sandbox=sandbox)
+    config.write_config()
+
+########  End Orcid  #####################
 if __name__ == '__main__':
     cli()
