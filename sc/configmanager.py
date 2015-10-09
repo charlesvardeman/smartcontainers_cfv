@@ -4,15 +4,15 @@
 from orcidconfigmanager import OrcidConfig
 import rdflib
 import os
+from os.path import expanduser
 
 __author__ = 'cwilli34'
 
 
 class ConfigManager(object):
-
     """ Configuration File Creator """
 
-    def __init__(self, orcid_id, sandbox=True):
+    def __init__(self, orcid_id=None, orcid_email=None, sandbox=True):
         """Initialize
 
         Parameters
@@ -22,9 +22,18 @@ class ConfigManager(object):
         :param sandbox: boolean
             Should the sandbox be used. True by default. False (default) indicates production mode.
         """
-        self.file = 'orcid_turtle.SCconfig'
-        self.exist = os.path.exists(self.file)
-        self.config = OrcidConfig(orcid_id, sandbox)
+        home_path = os.environ['HOME']
+        self.dir_path = home_path + "/.sc/"
+        self.filename = 'orcid_turtle.SCconfig'
+
+        if os.path.exists(self.dir_path):
+            self.config_path = self.dir_path + self.filename
+        else:
+            os.mkdir(home_path + "/.sc/")
+            self.config_path = self.dir_path + self.filename
+
+        self.exist = os.path.exists(self.config_path)
+        self.config = OrcidConfig(orcid_id, orcid_email, sandbox)
         self.ctgfile = None
 
     def write_config(self):
@@ -41,13 +50,19 @@ class ConfigManager(object):
         """
         if self.exist:
             # Open existing file, read and write
-            self.ctgfile = open(self.file, 'w+')
+            self.ctgfile = open(self.config_path, 'w+')
         else:
             # Create config file, write
-            self.ctgfile = open(self.file, 'w')
-        profile = self.config.get_turtle()
-        self.ctgfile.write(str(profile))
-        self.ctgfile.close()
+            self.ctgfile = open(self.config_path, 'w')
+
+        try:
+            profile = self.config.get_turtle()
+            self.ctgfile.write(str(profile))
+            self.ctgfile.close()
+            print('The configuration file has been created.')
+        except:
+            print('An unexpected error has occurred.  The configuration file could not be created.')
+            self.ctgfile.close()
 
     def read_config(self):
         """Read the configuration file.  The configuration file is in a Turtle syntax format and
@@ -71,9 +86,15 @@ class ConfigManager(object):
             return message
         else:
             # Open existing file, read and write
-            self.ctgfile = open(self.file, 'r')
+            self.ctgfile = open(self.config_path, 'r')
             # Variable data is not used (This is for customizing the script later for future configuration).
-            data = self.ctgfile.read()
-            result = g.parse(self.ctgfile, format='turtle')
-            self.ctgfile.close()
-            return result
+            try:
+                data = self.ctgfile.read()
+                result = g.parse(self.ctgfile, format='turtle')
+                self.ctgfile.close()
+                message = 'File was read successfully.'
+                return message
+            except:
+                self.ctgfile.close()
+                message = 'File could not be read.  Try again'
+                return message

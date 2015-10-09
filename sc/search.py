@@ -1,5 +1,6 @@
 from colorama import Fore, Style
 import orcid
+import requests
 
 # For testing
 import simplejson as json
@@ -22,6 +23,7 @@ class OrcidSearchResults(object):
         self.api = orcid.PublicAPI(sandbox)
         self.s_dict = dict()
         self.orcid_id = []
+        self.sandbox = sandbox
 
     def basic_search(self, query):
         """Basic search based on search terms entered by user to find an Orcid ID.
@@ -89,7 +91,7 @@ class OrcidSearchResults(object):
                     l = dict()
                     for k, e in enumerate(email):
                         c = e.get('value')
-                        l[k+1] = c
+                        l[k + 1] = c
 
                     self.s_dict.update(
                         {
@@ -161,6 +163,46 @@ class OrcidSearchResults(object):
         summary = self.api.read_record_public(query, 'activities')
         return summary
 
+    def email_search(self, query):
+        """Search by email using Python Requests
+        Parameters
+        ----------
+        :param query: string
+            Email address submitted for query
+        """
+        if self.sandbox is True:
+            url = 'http://sandbox.orcid.org/search/orcid-bio/?q=email:' + query
+        else:
+            url = 'http://pub.orcid.org/search/orcid-bio/?q=email:' + query
+
+        headers = {'Accept': 'application/orcid+json'}
+
+        data = requests.get(url, headers=headers)
+        data_object = data.json()
+
+        if data_object['orcid-search-results']['num-found'] == 0:
+            print('Email not found.')
+        else:
+            return data_object
+
+    def id_search(self, query):
+        """Search by email using Python Requests
+        Parameters
+        ----------
+        :param query: string
+            Email address submitted for query
+        """
+        if self.sandbox is True:
+            url = 'http://sandbox.orcid.org/' + query
+        else:
+            url = 'http://pub.orcid.org/' + query
+
+        headers = {'Accept': 'application/orcid+json'}
+
+        data = requests.get(url, headers=headers)
+        data_object = data.json()
+        return data_object
+
     def print_basic(self):
         """Print basic search results for better user readability.
 
@@ -177,11 +219,11 @@ class OrcidSearchResults(object):
         result_warning_text = Fore.RED + Style.BRIGHT + "You have a lot of results!!\n" + Fore.RESET + \
                               "Please modify or add more search terms to narrow your results.\n"
 
-        print result_text
+        print result_text + '\n'
         if self.total_results > 30:
             print result_warning_text
 
-        for p in self.s_dict:
+        for i, p in enumerate(self.s_dict):
             email = self.s_dict[p].get('email')
             l_name = self.s_dict[p].get('l_name')
             f_name = self.s_dict[p].get('f_name')
@@ -190,7 +232,9 @@ class OrcidSearchResults(object):
             l_name_text = Fore.BLUE + '{0:14}{1:40}'.format('Last Name:', Fore.RESET + l_name.encode('utf8'))
             f_name_text = Fore.BLUE + '{0:14}{1:40}'.format('First Name:',  Fore.RESET + f_name.encode('utf8'))
             email_text = Fore.BLUE + 'Email:' + Fore.RESET
+            count = Fore.BLUE + Style.BRIGHT + '{0:14}{1:40}'.format('Result:', Fore.RESET + Fore.YELLOW + Style.BRIGHT + str(i + 1).encode('utf8') + Fore.RESET)
 
+            print count
             print id_text
             print l_name_text
             print f_name_text
@@ -204,6 +248,50 @@ class OrcidSearchResults(object):
                         print '{0:14}'.format("") + '{0:40}'.format(email_address_text.encode('utf8'))
 
             print("")
+
+    def print_basic_alt(self):
+        """Print basic search results for better user readability (Alternative Format).
+
+        Parameters
+        ----------
+        :param: None
+
+        Returns
+        -------
+        :returns: None
+        """
+        result_text = Fore.YELLOW + Style.BRIGHT + "Search Results: " + Fore.RESET + '(' + \
+                      str(self.total_results) + ' Total)'
+        result_warning_text = Fore.RED + Style.BRIGHT + "You have a lot of results!!\n" + Fore.RESET + \
+                              "Please modify or add more search terms to narrow your results.\n"
+
+        print result_text + '\n'
+        if self.total_results > 30:
+            print result_warning_text
+
+        for i, p in enumerate(self.s_dict):
+            email = self.s_dict[p].get('email')
+            l_name = self.s_dict[p].get('l_name')
+            f_name = self.s_dict[p].get('f_name')
+
+            id_text = p.encode('utf8')
+            l_name_text = l_name.encode('utf8')
+            f_name_text = f_name.encode('utf8')
+            count = Fore.BLUE + Style.BRIGHT + 'Result: ' + Fore.RESET + Fore.YELLOW + Style.BRIGHT + str(i + 1) + Fore.RESET
+
+            email_list = []
+
+            if email is not None:
+                for e in email:
+                    email_list.insert(e, email[e])
+
+            print(count + ', ' + id_text + ', ' + f_name_text + ' ' + l_name_text + (' (' if email_list else '') +  ', '.join(email_list) + (') ' if email_list else ''))
+
+        print('')
+
+
+
+
 
     # Possible to create advance printing dialogs so less code is required in the calling program
     # def print_advance(self):
