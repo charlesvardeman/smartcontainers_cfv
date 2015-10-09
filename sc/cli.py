@@ -8,7 +8,7 @@ from pprintpp import pprint as pp
 # from ._version import __version__
 
 # Set sandbox variable
-sandbox = True
+sandbox = False
 
 class Settings(object):
     def __init__(self, home=None, debug=False):

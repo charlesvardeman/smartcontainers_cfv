@@ -289,9 +289,5 @@ class OrcidSearchResults(object):
 
         print('')
 
-
-
-
-
     # Possible to create advance printing dialogs so less code is required in the calling program
     # def print_advance(self):

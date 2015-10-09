@@ -19,7 +19,7 @@ __version__ = "0.1"
 __author__ = 'cwilli34'
 
 # Set sandbox variable
-sandbox = True
+sandbox = False
 
 # Print program version
 def print_version(ctx, param, value):

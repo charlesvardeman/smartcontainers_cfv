@@ -4,7 +4,6 @@
 from orcidconfigmanager import OrcidConfig
 import rdflib
 import os
-from os.path import expanduser
 
 __author__ = 'cwilli34'
 
@@ -22,17 +21,8 @@ class ConfigManager(object):
         :param sandbox: boolean
             Should the sandbox be used. True by default. False (default) indicates production mode.
         """
-        home_path = os.environ['HOME']
-        self.dir_path = home_path + "/.sc/"
+        os.environ['SC_HOME'] = os.environ['HOME'] + '/.sc/'
         self.filename = 'orcid_turtle.SCconfig'
-
-        if os.path.exists(self.dir_path):
-            self.config_path = self.dir_path + self.filename
-        else:
-            os.mkdir(home_path + "/.sc/")
-            self.config_path = self.dir_path + self.filename
-
-        self.exist = os.path.exists(self.config_path)
         self.config = OrcidConfig(orcid_id, orcid_email, sandbox)
         self.ctgfile = None
 
@@ -48,12 +38,14 @@ class ConfigManager(object):
         -------
         :returns: none
         """
-        if self.exist:
+        config_path = os.getenv('SC_HOME')
+        if os.path.exists(config_path):
             # Open existing file, read and write
-            self.ctgfile = open(self.config_path, 'w+')
+            self.ctgfile = open(config_path + self.filename, 'w+')
         else:
             # Create config file, write
-            self.ctgfile = open(self.config_path, 'w')
+            os.mkdir(os.environ['SC_HOME'])
+            self.ctgfile = open(config_path + self.filename, 'w')
 
         try:
             profile = self.config.get_turtle()
@@ -79,18 +71,23 @@ class ConfigManager(object):
         :returns: string
             If the configuration file does not exist, return error string
         """
-        g = rdflib.Graph()
-        if not self.exist:
+        # g = rdflib.Graph()
+        config_path = os.getenv('SC_HOME')
+        if not os.path.exists(config_path):
+            # If the directory does not exist, we cannot read it.
+            message = 'Directory does not exist. Cannot read file'
+            return message
+        elif not os.path.exists(config_path + self.filename):
             # If the file does not exist, we cannot read it.
             message = 'File does not exist. Cannot read file'
             return message
         else:
             # Open existing file, read and write
-            self.ctgfile = open(self.config_path, 'r')
+            self.ctgfile = open(config_path + self.filename, 'r')
             # Variable data is not used (This is for customizing the script later for future configuration).
             try:
-                data = self.ctgfile.read()
-                result = g.parse(self.ctgfile, format='turtle')
+                # data = self.ctgfile.read()
+                # result = g.parse(self.ctgfile, format='turtle')
                 self.ctgfile.close()
                 message = 'File was read successfully.'
                 return message
