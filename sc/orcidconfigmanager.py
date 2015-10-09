@@ -9,7 +9,7 @@ __author__ = 'cwilli34'
 class OrcidConfig(object):
     """Class for OrcidConfig"""
 
-    def __init__(self, orcid_id=None, orcid_email=None, sandbox=True):
+    def __init__(self, orcid_id=None, orcid_email=None, sandbox=False):
         """Initialize
 
         Parameters
@@ -21,7 +21,6 @@ class OrcidConfig(object):
         :param sandbox: boolean
             Should the sandbox be used. True by default. False (default) indicates production mode.
         """
-
 
         if orcid_email:
             if sandbox is True:
@@ -81,5 +80,6 @@ class OrcidConfig(object):
         :returns: string
             user data in a text format with Turtle syntax
         """
+        print self.url
         self.turtle_config = requests.get(self.url, headers=self.headers)
         return self.turtle_config.text

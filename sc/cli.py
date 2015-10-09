@@ -81,7 +81,7 @@ def config_by_search():
 
 def config_by_id(id):
     """Create a RDF Graph configuration file by Orcid ID."""
-    config = ConfigManager(orcid_id=id, sandbox=sandbox)
+    config = ConfigManager(orcid_id=id, sandbox=False)
     config.write_config()
 
 def config_by_email(email):
