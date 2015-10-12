@@ -28,7 +28,7 @@ class ConfigManager(object):
             self.config_path = os.getenv('SC_HOME')
         else:
             os.environ['SC_HOME'] = os.environ['HOME'] + '/.sc/'
-            self.config_path = os.environ['SC_HOME']
+            self.config_path = os.getenv('SC_HOME')
             if os.path.exists(self.config_path):
                 # Open existing file, read and write
                 self.ctgfile = open(self.config_path + self.filename, 'w+')
