@@ -2,8 +2,8 @@
     file with Turtle syntax
 """
 from orcidconfigmanager import OrcidConfig
-import rdflib
 import os
+import rdflib
 
 __author__ = 'cwilli34'
 
@@ -21,15 +21,21 @@ class ConfigManager(object):
         :param sandbox: boolean
             Should the sandbox be used. True by default. False (default) indicates production mode.
         """
+        self.filename = 'orcid_turtle.SCconfig'
+        self.config = OrcidConfig(orcid_id, orcid_email, sandbox)
+
         if os.environ.get('SC_HOME'):
             self.config_path = os.getenv('SC_HOME')
         else:
             os.environ['SC_HOME'] = os.environ['HOME'] + '/.sc/'
             self.config_path = os.environ['SC_HOME']
-
-        self.filename = 'orcid_turtle.SCconfig'
-        self.config = OrcidConfig(orcid_id, orcid_email, sandbox)
-        self.ctgfile = None
+            if os.path.exists(self.config_path):
+                # Open existing file, read and write
+                self.ctgfile = open(self.config_path + self.filename, 'w+')
+            else:
+                # Create config file, write
+                os.mkdir(self.config_path)
+                self.ctgfile = open(self.config_path + self.filename, 'w')
 
     def write_config(self):
         """Write the configuration file
@@ -43,14 +49,6 @@ class ConfigManager(object):
         -------
         :returns: none
         """
-        if os.path.exists(self.config_path):
-            # Open existing file, read and write
-            self.ctgfile = open(self.config_path + self.filename, 'w+')
-        else:
-            # Create config file, write
-            os.mkdir(os.environ['SC_HOME'])
-            self.ctgfile = open(self.config_path + self.filename, 'w')
-
         try:
             profile = self.config.get_turtle()
             self.ctgfile.write(str(profile))
