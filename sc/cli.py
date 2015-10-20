@@ -22,20 +22,26 @@ def cli():
     Smartcontainers provides a mechanism to add metadata to Docker
     containers as a JSON-LD label. The metadata is contexualized using
     W3C recommended PROV-O and ORCID IDs to capture provenance information.
+    The sc command wrappes the docker commandline interface and passes any
+    docker command line parameters through to docker. Any command that changes
+    the state of the container is recorded in a prov graph and attached to the resultant
+    image.
     """
     pass
 
 @cli.group()
 @click.option('--config', '-c', help='Run configure command')
 def config(config):
-    """Configure smartcontainers."""
+    """Configure smartcontainers. Run sc config to get subcommand options for configuring """
     pass
 
 # We may have to manually handle --help and pass it to docker
 @cli.command()
 @click.argument('command')
 def docker(command):
-    """Execute a docker command."""
+    """Execute a docker command.
+    Example: sc docker run <container id>
+    """
     processdocker = Docker(command)
     processdocker.sanity_check()
     processdocker.do_command()
@@ -44,6 +50,12 @@ def docker(command):
 @click.argument('image')
 def search(image):
     """Search for information in docker metadata."""
+    pass
+
+@cli.command()
+@click.argument('printLabel')
+def print_md():
+    """Print Metadata label from container."""
     pass
 
 @cli.command()
