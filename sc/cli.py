@@ -16,11 +16,16 @@ class Settings(object):
         self.debug = debug
 
 @click.group()
+@click.version_option()
 def cli():
-    """Smartcontainers for software and data preservation."""
+    """Smartcontainers for software and data preservation.
+    Smartcontainers provides a mechanism to add metadata to Docker
+    containers as a JSON-LD label. The metadata is contexualized using
+    W3C recommended PROV-O and ORCID IDs to capture provenance information.
+    """
     pass
 
-@cli.command()
+@cli.group()
 @click.option('--config', '-c', help='Run configure command')
 def config(config):
     """Configure smartcontainers."""
@@ -60,8 +65,8 @@ def preserve():
     """
     pass
 
-########  Orcid Commands  ###############
-@cli.command()
+#  Orcid Commands
+@config.command()
 @click.option('-i', default=None, help='Search for an Orcid profile by Orcid ID.')
 @click.option('-e', default=None, help='Search for an Orcid profile by email.')
 def orcid(i, e):
@@ -89,6 +94,6 @@ def config_by_email(email):
     config = ConfigManager(orcid_email=email, sandbox=sandbox)
     config.write_config()
 
-########  End Orcid  #####################
+#  End Orcid  #####################
 if __name__ == '__main__':
     cli()
