@@ -11,18 +11,16 @@ __author__ = 'cwilli34'
 class ConfigManager(object):
     """ Configuration File Creator """
 
-    def __init__(self, orcid_id=None, orcid_email=None, sandbox=True):
+    def __init__(self, orcid_id=None, orcid_email=None):
         """Initialize
 
         Parameters
         ----------
         :param orcid_id: string
             When s is true, click prompts will be executed and the basic_search() function will be executed.
-        :param sandbox: boolean
-            Should the sandbox be used. True by default. False (default) indicates production mode.
         """
         self.filename = 'orcid_turtle.SCconfig'
-        self.config = OrcidConfig(orcid_id, orcid_email, sandbox)
+        self.config = OrcidConfig(orcid_id, orcid_email)
 
         if os.environ.get('SC_HOME'):
             self.config_path = os.getenv('SC_HOME')

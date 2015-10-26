@@ -25,12 +25,6 @@ class OrcidSearchResults(object):
         self.orcid_id = []
         self.url = self.api._endpoint_public
 
-        self.sandbox = sandbox
-        if self.sandbox is True:
-            self.url = 'http://sandbox.orcid.org/'
-        else:
-            self.url = 'http://pub.orcid.org/'
-
     def basic_search(self, query):
         """Basic search based on search terms entered by user to find an Orcid ID.
 
@@ -168,51 +162,6 @@ class OrcidSearchResults(object):
 
         summary = self.api.read_record_public(query, 'activities')
         return summary
-
-    def email_search(self, query):
-        """Search by email using Python Requests
-        Parameters
-        ----------
-        :param query: string
-            Email address submitted for query
-        """
-        # search_results = self.api.search_public(query, start=0, rows=100)
-        # results = search_results.get('orcid-search-results', None)
-        # self.actual_total_results = results.get('num-found', 0)
-        # result = results.get('orcid-search-result', None)
-
-        url = self.url + 'search/orcid-bio/q=' + query
-
-        headers = {'Accept': 'application/orcid+json'}
-
-        data = requests.get(url, headers=headers)
-        data_object = data.json()
-
-        print data_object
-
-        if data_object['orcid-search-results']['num-found'] == 0:
-            print('Email not found.')
-        else:
-            return data_object
-
-    def id_search(self, query):
-        """Search by email using Python Requests
-        Parameters
-        ----------
-        :param query: string
-            Email address submitted for query
-        """
-        url = self.url + query
-
-        headers = {'Accept': 'application/orcid+json'}
-
-        data = requests.get(url, headers=headers)
-        data_object = data.json()
-
-        if data_object['orcid-search-results']['num-found'] == 0:
-            print('Orcid ID not found.')
-        else:
-            return data_object
 
     def print_basic(self):
         """Print basic search results for better user readability.

@@ -10,7 +10,7 @@ __author__ = 'cwilli34'
 class OrcidConfig(object):
     """Class for OrcidConfig"""
 
-    def __init__(self, orcid_id=None, orcid_email=None, sandbox=False):
+    def __init__(self, orcid_id=None, orcid_email=None):
         """Initialize
 
         Parameters
@@ -19,8 +19,6 @@ class OrcidConfig(object):
             Needs orcid_id to perform a request by orcid_id.
         :param orcid_email: string
             Needs an email address to perform a request by email.
-        :param sandbox: boolean
-            Should the sandbox be used. True by default. False (default) indicates production mode.
         """
         if orcid_email:
             self.search_obj = OrcidSearchResults(sandbox)

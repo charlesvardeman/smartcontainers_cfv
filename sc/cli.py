@@ -7,9 +7,6 @@ from pprintpp import pprint as pp
 
 # from ._version import __version__
 
-# Set sandbox variable
-sandbox = False
-
 class Settings(object):
     def __init__(self, home=None, debug=False):
         self.home = os.path.abspath(home or '.')
@@ -98,13 +95,13 @@ def config_by_search():
 
 def config_by_id(id):
     """Create a RDF Graph configuration file by Orcid ID."""
-    config = ConfigManager(orcid_id=id, sandbox=False)
+    config = ConfigManager(orcid_id=id)
     config.write_config()
 
 def config_by_email(orcid_email):
     """Create a RDF Graph configuration file by Orcid email."""
     email = 'email:' + orcid_email
-    config = ConfigManager(orcid_email=email, sandbox=sandbox)
+    config = ConfigManager(orcid_email=email)
     config.write_config()
 
 #  End Orcid  #####################

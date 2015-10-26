@@ -213,7 +213,7 @@ def basic_search_config(query):
     # Write config if only one result was found
     if total_results == 1:
         orcid_id = id_list[0]
-        config = ConfigManager(orcid_id=orcid_id, sandbox=sandbox)
+        config = ConfigManager(orcid_id=orcid_id)
         config.write_config()
     # Allow user to select Orcid profile if multiple results are found
     else:
@@ -226,7 +226,7 @@ def basic_search_config(query):
         print("")
         orcid_id = id_dict[int(selected)]
 
-        config = ConfigManager(orcid_id=orcid_id, sandbox=sandbox)
+        config = ConfigManager(orcid_id=orcid_id)
         config.write_config()
 
 def advanced_search(query, record_type):
@@ -253,10 +253,10 @@ def advanced_search(query, record_type):
 
     # Will be 'not None' only if record type is other than 'activities'
     if record_type == 'write-rdf':
-        config = ConfigManager(orcid_id=query, sandbox=sandbox)
+        config = ConfigManager(orcid_id=query)
         config.write_config()
     elif record_type == 'read-rdf':
-        config = ConfigManager(orcid_id=query, sandbox=sandbox)
+        config = ConfigManager(orcid_id=query)
         rdf_graph = config.read_config()
         print rdf_graph
     elif record_type is not None:
