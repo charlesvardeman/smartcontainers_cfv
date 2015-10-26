@@ -23,7 +23,13 @@ class OrcidSearchResults(object):
         self.api = orcid.PublicAPI(sandbox)
         self.s_dict = dict()
         self.orcid_id = []
+        self.url = self.api._endpoint_public
+
         self.sandbox = sandbox
+        if self.sandbox is True:
+            self.url = 'http://sandbox.orcid.org/'
+        else:
+            self.url = 'http://pub.orcid.org/'
 
     def basic_search(self, query):
         """Basic search based on search terms entered by user to find an Orcid ID.
@@ -170,15 +176,19 @@ class OrcidSearchResults(object):
         :param query: string
             Email address submitted for query
         """
-        if self.sandbox is True:
-            url = 'http://sandbox.orcid.org/search/orcid-bio/?q=email:' + query
-        else:
-            url = 'http://pub.orcid.org/search/orcid-bio/?q=email:' + query
+        # search_results = self.api.search_public(query, start=0, rows=100)
+        # results = search_results.get('orcid-search-results', None)
+        # self.actual_total_results = results.get('num-found', 0)
+        # result = results.get('orcid-search-result', None)
+
+        url = self.url + 'search/orcid-bio/q=' + query
 
         headers = {'Accept': 'application/orcid+json'}
 
         data = requests.get(url, headers=headers)
         data_object = data.json()
+
+        print data_object
 
         if data_object['orcid-search-results']['num-found'] == 0:
             print('Email not found.')
@@ -192,16 +202,17 @@ class OrcidSearchResults(object):
         :param query: string
             Email address submitted for query
         """
-        if self.sandbox is True:
-            url = 'http://sandbox.orcid.org/' + query
-        else:
-            url = 'http://pub.orcid.org/' + query
+        url = self.url + query
 
         headers = {'Accept': 'application/orcid+json'}
 
         data = requests.get(url, headers=headers)
         data_object = data.json()
-        return data_object
+
+        if data_object['orcid-search-results']['num-found'] == 0:
+            print('Orcid ID not found.')
+        else:
+            return data_object
 
     def print_basic(self):
         """Print basic search results for better user readability.

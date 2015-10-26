@@ -2,6 +2,7 @@
     Turtle syntax.  It passes this data to the configmanager.py
 """
 import requests
+from search import OrcidSearchResults
 
 __author__ = 'cwilli34'
 
@@ -21,26 +22,16 @@ class OrcidConfig(object):
         :param sandbox: boolean
             Should the sandbox be used. True by default. False (default) indicates production mode.
         """
-
         if orcid_email:
-            if sandbox is True:
-                self.url = 'http://sandbox.orcid.org/search/orcid-bio/?q=email:' + orcid_email
-                self.headers = {'Accept': 'application/orcid+json'}
-                self.orcid_id = self.get_id()
-            else:
-                self.url = 'http://pub.orcid.org/search/orcid-bio/?q=email:' + orcid_email
-                self.headers = {'Accept': 'application/orcid+json'}
-                self.orcid_id = self.get_id()
+            self.search_obj = OrcidSearchResults(sandbox)
+            self.data = self.search_obj.basic_search(orcid_email)
+            self.orcid_id = self.get_id()
         else:
             self.orcid_id = orcid_id
-        try:
-            if sandbox is True:
-                self.url = 'http://sandbox.orcid.org/' + self.orcid_id
-                self.headers = {'Accept': 'text/turtle'}
-            else:
-                self.url = 'http://pub.orcid.org/' + self.orcid_id
-                self.headers = {'Accept': 'text/turtle'}
 
+        try:
+            self.url = self.search_obj.url + self.orcid_id
+            self.headers = {'Accept': 'text/turtle'}
             self.turtle_config = None
         except:
             print('Orcid ID or email is invalid.  Please try again.')
@@ -58,15 +49,11 @@ class OrcidConfig(object):
         :returns: string
             returns the Orcid ID from the email search
         """
-
-        data = requests.get(self.url, headers=self.headers)
-        data_object = data.json()
-
-        if data_object['orcid-search-results']['num-found'] == 0:
+        if not self.data:
             print('Email not found.')
         else:
-            id = data_object['orcid-search-results']['orcid-search-result'][0]['orcid-profile']['orcid-identifier']['path']
-            return id
+            id = self.data.keys()
+            return id[0]
 
     def get_turtle(self):
         """Get the user information in a Turtle syntax
@@ -80,6 +67,11 @@ class OrcidConfig(object):
         :returns: string
             user data in a text format with Turtle syntax
         """
-        print self.url
         self.turtle_config = requests.get(self.url, headers=self.headers)
-        return self.turtle_config.text
+
+        if (self.turtle_config.status_code == 404) or (self.turtle_config.status_code == 500):
+            print('Orcid ID not found.  Please try again.')
+            exit()
+        else:
+            print(str(self.url) + ", Status: " + str(self.turtle_config.status_code))
+            return self.turtle_config.text

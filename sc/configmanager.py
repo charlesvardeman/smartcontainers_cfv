@@ -76,11 +76,11 @@ class ConfigManager(object):
         # g = rdflib.Graph()
         if not os.path.exists(self.config_path):
             # If the directory does not exist, we cannot read it.
-            message = 'Directory does not exist. Cannot read file'
+            message = 'Directory does not exist. Cannot read file.'
             return message
         elif not os.path.exists(self.config_path + self.filename):
             # If the file does not exist, we cannot read it.
-            message = 'File does not exist. Cannot read file'
+            message = 'File does not exist. Cannot read file.'
             return message
         else:
             # Open existing file, read and write
@@ -94,5 +94,5 @@ class ConfigManager(object):
                 return message
             except:
                 self.ctgfile.close()
-                message = 'File could not be read.  Try again'
+                message = 'File could not be read.  Please try again.'
                 return message

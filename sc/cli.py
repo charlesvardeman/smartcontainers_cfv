@@ -101,8 +101,9 @@ def config_by_id(id):
     config = ConfigManager(orcid_id=id, sandbox=False)
     config.write_config()
 
-def config_by_email(email):
+def config_by_email(orcid_email):
     """Create a RDF Graph configuration file by Orcid email."""
+    email = 'email:' + orcid_email
     config = ConfigManager(orcid_email=email, sandbox=sandbox)
     config.write_config()
 

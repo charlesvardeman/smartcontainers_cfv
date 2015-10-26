@@ -40,8 +40,8 @@ def search_type(a, b, c):
 
     Parameters
     ----------
-    :param s: flag
-        When s is true, click prompts will be executed and the basic_search() function will be executed.
+    :param b: flag
+        When b is true, click prompts will be executed and the basic_search() function will be executed.
     :param a: flag
         When a is true, click prompts will be executed and the advanced_search() function will be executed
     """
@@ -52,50 +52,38 @@ def search_type(a, b, c):
             'first_name': click.prompt('Please enter a first name', default='', show_default=False),
             'last_name': click.prompt('Please enter a last name', default='', show_default=False),
             'email': click.prompt('Please enter an email', default='', show_default=False),
-            'institution': click.prompt('Please enter an institution', default='', show_default=False),
-            'department': click.prompt('Please enter a department', default='', show_default=False)
+            'keywords': click.prompt('Please enter some keywords (like country, department or institution)', default='', show_default=False)
         }
         print('')
 
         first_name = query['first_name']
         last_name = query['last_name']
         email = query['email']
-        institution = query['institution']
-        department = query['department']
+        keywords = query['keywords']
+
+        if first_name:
+            first_name = 'given-names:' + query['first_name']
+        if last_name:
+            last_name = 'family-name:' + query['last_name']
+        if email:
+            email = 'email:' + query['email']
 
         # Configures search string for lucene formatting
         if first_name and last_name:
             first_name = first_name + ' AND '
-        elif first_name and (email or institution or department):
+        elif first_name and (email or keywords):
             first_name = first_name + ' AND '
-        if last_name and (email or institution or department):
+        if last_name and (email or keywords):
             last_name = last_name + ' AND '
         if not last_name and not first_name:
-            if email and (institution or department):
+            if email and (keywords):
                 email = email + ' AND '
-            if institution and department:
-                institution = '"' + institution + '"' + ' AND '
-            elif (email and institution and not department) or institution:
-                institution = '"' + institution + '"'
-            if department:
-                department = '"' + department + '"'
         else:
-            if email and (institution or department):
+            if email and keywords:
                 email = '(' + email + ' AND '
-            if not email and institution and department:
-                institution = '(' + '"' + institution + '"' + ' AND '
-            elif email and institution and not department:
-                institution = '"' + institution + '"' + ')'
-            elif email and institution and department:
-                institution = '"' + institution + '"' + ' AND '
-            elif institution:
-                institution = '"' + institution + '"'
-            if (email or institution) and department:
-                department = '"' + department + '"' + ')'
-            elif department:
-                department = '"' + department + '"'
+                keywords = keywords + ')'
 
-        search_terms = first_name + last_name + email + institution + department
+        search_terms = first_name + last_name + email + keywords
 
         # View string input
         print search_terms + '\n'
@@ -106,8 +94,6 @@ def search_type(a, b, c):
         else:
             # Call basic_search() function
             basic_search(search_terms)
-
-
     elif a:
         # Print selection options, and prompt for choice
         print('There are several ways of getting summarized information on an Orcid user:\n\n'
