@@ -84,7 +84,7 @@ def preserve():
 @click.option('-e', default=None, help='Search for an Orcid profile by email.')
 def orcid(i, e):
     """Create a config file, based on an Orcid ID."""
-    # Make sure sandbox variable is set correctly in orcidfind.py before testing
+    # Make sure sandbox variable is set correctly in cli.py before testing
     if i:
         config_by_id(i)
     elif e:
