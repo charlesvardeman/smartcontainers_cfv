@@ -2,10 +2,13 @@ import click
 import os
 from configmanager import ConfigManager
 from docker import Docker
-from orcidfind import OrcidSearchResults, search_type
+from orcidfind import search_type
 from pprintpp import pprint as pp
 
 # from ._version import __version__
+
+# Set sandbox variable
+sandbox = False
 
 class Settings(object):
     def __init__(self, home=None, debug=False):
@@ -80,6 +83,7 @@ def preserve():
 @click.option('-e', default=None, help='Search for an Orcid profile by email.')
 def orcid(i, e):
     """Create a config file, based on an Orcid ID."""
+    # Make sure sandbox variable is set correctly in orcidfind.py before testing
     if i:
         config_by_id(i)
     elif e:
@@ -95,13 +99,15 @@ def config_by_search():
 
 def config_by_id(id):
     """Create a RDF Graph configuration file by Orcid ID."""
-    config = ConfigManager(orcid_id=id)
+    # Make sure sandbox variable is set correctly in cli.py before testing
+    config = ConfigManager(orcid_id=id, sandbox=sandbox)
     config.write_config()
 
 def config_by_email(orcid_email):
     """Create a RDF Graph configuration file by Orcid email."""
+    # Make sure sandbox variable is set correctly in cli.py before testing
     email = 'email:' + orcid_email
-    config = ConfigManager(orcid_email=email)
+    config = ConfigManager(orcid_email=email, sandbox=sandbox)
     config.write_config()
 
 #  End Orcid  #####################

@@ -10,7 +10,7 @@ __author__ = 'cwilli34'
 class OrcidConfig(object):
     """Class for OrcidConfig"""
 
-    def __init__(self, orcid_id=None, orcid_email=None):
+    def __init__(self, orcid_id=None, orcid_email=None, sandbox=True):
         """Initialize
 
         Parameters
@@ -25,10 +25,11 @@ class OrcidConfig(object):
             self.data = self.search_obj.basic_search(orcid_email)
             self.orcid_id = self.get_id()
         else:
+            self.search_obj = OrcidSearchResults(sandbox)
             self.orcid_id = orcid_id
 
         try:
-            self.url = self.search_obj.url + self.orcid_id
+            self.url = self.search_obj.url + '/' + self.orcid_id
             self.headers = {'Accept': 'text/turtle'}
             self.turtle_config = None
         except:

@@ -213,8 +213,14 @@ def basic_search_config(query):
     # Write config if only one result was found
     if total_results == 1:
         orcid_id = id_list[0]
-        config = ConfigManager(orcid_id=orcid_id)
+        config = ConfigManager(orcid_id=orcid_id, sandbox=sandbox)
         config.write_config()
+
+    # If no results are found
+    elif total_results == 0:
+        print("No results where found. Please try again.\n")
+        search_type(args = ['-c'])
+
     # Allow user to select Orcid profile if multiple results are found
     else:
         id_dict = dict()
@@ -222,12 +228,25 @@ def basic_search_config(query):
         for i, id in enumerate(id_list):
             id_dict[i + 1] = id
 
-        selected = click.prompt('Select the result # of the record')
-        print("")
-        orcid_id = id_dict[int(selected)]
-
-        config = ConfigManager(orcid_id=orcid_id)
-        config.write_config()
+        selected = None
+        while not selected:
+            try:
+                selected = click.prompt('Select the result # of the record (Type "N" for another search, "Exit" to abort)')
+                print("")
+                orcid_id = id_dict[int(selected)]
+                config = ConfigManager(orcid_id=orcid_id, sandbox=sandbox)
+                config.write_config()
+            except (KeyError):
+                print('That is not a valid selection.  Please try again.\n')
+                selected = None
+            except (ValueError):
+                if selected in ('N', 'n'):
+                    search_type(args = ['-c'])
+                elif selected in ('exit', 'Exit', 'EXIT'):
+                    exit()
+                else:
+                    print('That is not a valid selection.  Please try again.\n')
+                    selected = None
 
 def advanced_search(query, record_type):
     """ Function for initializing an advanced search for an orcid id.  Utilizes OrcidSearchResults() class
@@ -253,10 +272,10 @@ def advanced_search(query, record_type):
 
     # Will be 'not None' only if record type is other than 'activities'
     if record_type == 'write-rdf':
-        config = ConfigManager(orcid_id=query)
+        config = ConfigManager(orcid_id=query, sandbox=sandbox)
         config.write_config()
     elif record_type == 'read-rdf':
-        config = ConfigManager(orcid_id=query)
+        config = ConfigManager(orcid_id=query, sandbox=sandbox)
         rdf_graph = config.read_config()
         print rdf_graph
     elif record_type is not None:
