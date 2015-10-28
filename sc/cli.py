@@ -10,6 +10,7 @@ from pprintpp import pprint as pp
 # Set sandbox variable
 sandbox = False
 
+
 class Settings(object):
     def __init__(self, home=None, debug=False):
         self.home = os.path.abspath(home or '.')

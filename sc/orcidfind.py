@@ -167,13 +167,13 @@ def basic_search(query):
 
     # Ask user if they would like to search again.
     while True:
-        new_instance = click.prompt('Would you like to search again [y/N]?')
+        new_instance = click.prompt('Would you like to search again [y/N]?', default='N', show_default=False)
         print('')
 
-        if new_instance == ('y' or 'Y' or 'yes' or 'YES' or 'Yes'):
+        if new_instance in ('y', 'Y', 'yes', 'YES', 'Yes'):
             search_type(args = ['-b'])
             break
-        elif new_instance == ('n' or 'N' or 'no' or 'NO' or 'No'):
+        elif new_instance in ('n', 'N', 'no', 'NO', 'No'):
             exit(1)
         else:
             print('You did not pick an appropriate answer.')
@@ -286,16 +286,16 @@ def advanced_search(query, record_type):
 
         # Ask user if they would like to send this information to file
         while True:
-            send_to_file = click.prompt('Would you like to send this output to a file [y/N]?')
+            send_to_file = click.prompt('Would you like to send this output to a file [y/N]?', default='N', show_default=False)
 
-            if send_to_file == ('y' or 'Y' or 'yes' or 'YES' or 'Yes'):
+            if send_to_file in ('y', 'Y', 'yes', 'YES', 'Yes'):
                 with io.open(query + '_' + record_type + '_' + put_code + '.json', 'w', encoding='utf8') \
                         as json_file:
                     data = json.dumps(results, json_file, sort_keys=True, indent=4, ensure_ascii=False)
                     # unicode(data) auto-decodes data to unicode if str
                     json_file.write(unicode(data))
                 break
-            elif send_to_file == ('n' or 'N' or 'no' or 'NO' or 'No'):
+            elif send_to_file in ('n', 'N', 'no', 'NO', 'No'):
                 break
             else:
                 print('You did not pick an appropriate answer.')
@@ -319,13 +319,13 @@ def advanced_search(query, record_type):
 
     # Ask user if they would like to go back to the advanced search selection menu
     while True:
-        new_instance = click.prompt('Back to \'Selection\' menu [y/exit]?')
+        new_instance = click.prompt('Back to \'Selection\' menu [y/EXIT]?', default='EXIT', show_default=False)
         print('')
 
-        if new_instance == ('y' or 'Y' or 'yes' or 'YES' or 'Yes'):
+        if new_instance in ('y', 'Y', 'yes', 'YES', 'Yes'):
             search_type(args = ['-a'])
             break
-        elif new_instance == ('exit' or 'EXIT' or 'Exit'):
+        elif new_instance in ('exit', 'EXIT', 'Exit'):
             exit(1)
         else:
             print('You did not pick an appropriate answer.')
