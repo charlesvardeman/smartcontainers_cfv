@@ -40,8 +40,8 @@ def search_type(a, b, c):
 
     Parameters
     ----------
-    :param s: flag
-        When s is true, click prompts will be executed and the basic_search() function will be executed.
+    :param b: flag
+        When b is true, click prompts will be executed and the basic_search() function will be executed.
     :param a: flag
         When a is true, click prompts will be executed and the advanced_search() function will be executed
     """
@@ -52,50 +52,38 @@ def search_type(a, b, c):
             'first_name': click.prompt('Please enter a first name', default='', show_default=False),
             'last_name': click.prompt('Please enter a last name', default='', show_default=False),
             'email': click.prompt('Please enter an email', default='', show_default=False),
-            'institution': click.prompt('Please enter an institution', default='', show_default=False),
-            'department': click.prompt('Please enter a department', default='', show_default=False)
+            'keywords': click.prompt('Please enter some keywords (like country, department or institution)', default='', show_default=False)
         }
         print('')
 
         first_name = query['first_name']
         last_name = query['last_name']
         email = query['email']
-        institution = query['institution']
-        department = query['department']
+        keywords = query['keywords']
+
+        if first_name:
+            first_name = 'given-names:' + query['first_name']
+        if last_name:
+            last_name = 'family-name:' + query['last_name']
+        if email:
+            email = 'email:' + query['email']
 
         # Configures search string for lucene formatting
         if first_name and last_name:
             first_name = first_name + ' AND '
-        elif first_name and (email or institution or department):
+        elif first_name and (email or keywords):
             first_name = first_name + ' AND '
-        if last_name and (email or institution or department):
+        if last_name and (email or keywords):
             last_name = last_name + ' AND '
         if not last_name and not first_name:
-            if email and (institution or department):
+            if email and (keywords):
                 email = email + ' AND '
-            if institution and department:
-                institution = '"' + institution + '"' + ' AND '
-            elif (email and institution and not department) or institution:
-                institution = '"' + institution + '"'
-            if department:
-                department = '"' + department + '"'
         else:
-            if email and (institution or department):
+            if email and keywords:
                 email = '(' + email + ' AND '
-            if not email and institution and department:
-                institution = '(' + '"' + institution + '"' + ' AND '
-            elif email and institution and not department:
-                institution = '"' + institution + '"' + ')'
-            elif email and institution and department:
-                institution = '"' + institution + '"' + ' AND '
-            elif institution:
-                institution = '"' + institution + '"'
-            if (email or institution) and department:
-                department = '"' + department + '"' + ')'
-            elif department:
-                department = '"' + department + '"'
+                keywords = keywords + ')'
 
-        search_terms = first_name + last_name + email + institution + department
+        search_terms = first_name + last_name + email + keywords
 
         # View string input
         print search_terms + '\n'
@@ -106,8 +94,6 @@ def search_type(a, b, c):
         else:
             # Call basic_search() function
             basic_search(search_terms)
-
-
     elif a:
         # Print selection options, and prompt for choice
         print('There are several ways of getting summarized information on an Orcid user:\n\n'
@@ -181,13 +167,13 @@ def basic_search(query):
 
     # Ask user if they would like to search again.
     while True:
-        new_instance = click.prompt('Would you like to search again [y/N]?')
+        new_instance = click.prompt('Would you like to search again [y/N]?', default='N', show_default=False)
         print('')
 
-        if new_instance == ('y' or 'Y' or 'yes' or 'YES' or 'Yes'):
+        if new_instance in ('y', 'Y', 'yes', 'YES', 'Yes'):
             search_type(args = ['-b'])
             break
-        elif new_instance == ('n' or 'N' or 'no' or 'NO' or 'No'):
+        elif new_instance in ('n', 'N', 'no', 'NO', 'No'):
             exit(1)
         else:
             print('You did not pick an appropriate answer.')
@@ -229,6 +215,12 @@ def basic_search_config(query):
         orcid_id = id_list[0]
         config = ConfigManager(orcid_id=orcid_id, sandbox=sandbox)
         config.write_config()
+
+    # If no results are found
+    elif total_results == 0:
+        print("No results where found. Please try again.\n")
+        search_type(args = ['-c'])
+
     # Allow user to select Orcid profile if multiple results are found
     else:
         id_dict = dict()
@@ -236,12 +228,25 @@ def basic_search_config(query):
         for i, id in enumerate(id_list):
             id_dict[i + 1] = id
 
-        selected = click.prompt('Select the result # of the record')
-        print("")
-        orcid_id = id_dict[int(selected)]
-
-        config = ConfigManager(orcid_id=orcid_id, sandbox=sandbox)
-        config.write_config()
+        selected = None
+        while not selected:
+            try:
+                selected = click.prompt('Select the result # of the record (Type "N" for another search, "Exit" to abort)')
+                print("")
+                orcid_id = id_dict[int(selected)]
+                config = ConfigManager(orcid_id=orcid_id, sandbox=sandbox)
+                config.write_config()
+            except (KeyError):
+                print('That is not a valid selection.  Please try again.\n')
+                selected = None
+            except (ValueError):
+                if selected in ('N', 'n'):
+                    search_type(args = ['-c'])
+                elif selected in ('exit', 'Exit', 'EXIT'):
+                    exit()
+                else:
+                    print('That is not a valid selection.  Please try again.\n')
+                    selected = None
 
 def advanced_search(query, record_type):
     """ Function for initializing an advanced search for an orcid id.  Utilizes OrcidSearchResults() class
@@ -281,16 +286,16 @@ def advanced_search(query, record_type):
 
         # Ask user if they would like to send this information to file
         while True:
-            send_to_file = click.prompt('Would you like to send this output to a file [y/N]?')
+            send_to_file = click.prompt('Would you like to send this output to a file [y/N]?', default='N', show_default=False)
 
-            if send_to_file == ('y' or 'Y' or 'yes' or 'YES' or 'Yes'):
+            if send_to_file in ('y', 'Y', 'yes', 'YES', 'Yes'):
                 with io.open(query + '_' + record_type + '_' + put_code + '.json', 'w', encoding='utf8') \
                         as json_file:
                     data = json.dumps(results, json_file, sort_keys=True, indent=4, ensure_ascii=False)
                     # unicode(data) auto-decodes data to unicode if str
                     json_file.write(unicode(data))
                 break
-            elif send_to_file == ('n' or 'N' or 'no' or 'NO' or 'No'):
+            elif send_to_file in ('n', 'N', 'no', 'NO', 'No'):
                 break
             else:
                 print('You did not pick an appropriate answer.')
@@ -314,13 +319,13 @@ def advanced_search(query, record_type):
 
     # Ask user if they would like to go back to the advanced search selection menu
     while True:
-        new_instance = click.prompt('Back to \'Selection\' menu [y/exit]?')
+        new_instance = click.prompt('Back to \'Selection\' menu [y/EXIT]?', default='EXIT', show_default=False)
         print('')
 
-        if new_instance == ('y' or 'Y' or 'yes' or 'YES' or 'Yes'):
+        if new_instance in ('y', 'Y', 'yes', 'YES', 'Yes'):
             search_type(args = ['-a'])
             break
-        elif new_instance == ('exit' or 'EXIT' or 'Exit'):
+        elif new_instance in ('exit', 'EXIT', 'Exit'):
             exit(1)
         else:
             print('You did not pick an appropriate answer.')

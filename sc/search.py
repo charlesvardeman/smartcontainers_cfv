@@ -23,7 +23,7 @@ class OrcidSearchResults(object):
         self.api = orcid.PublicAPI(sandbox)
         self.s_dict = dict()
         self.orcid_id = []
-        self.sandbox = sandbox
+        self.url = self.api._endpoint_public
 
     def basic_search(self, query):
         """Basic search based on search terms entered by user to find an Orcid ID.
@@ -162,46 +162,6 @@ class OrcidSearchResults(object):
 
         summary = self.api.read_record_public(query, 'activities')
         return summary
-
-    def email_search(self, query):
-        """Search by email using Python Requests
-        Parameters
-        ----------
-        :param query: string
-            Email address submitted for query
-        """
-        if self.sandbox is True:
-            url = 'http://sandbox.orcid.org/search/orcid-bio/?q=email:' + query
-        else:
-            url = 'http://pub.orcid.org/search/orcid-bio/?q=email:' + query
-
-        headers = {'Accept': 'application/orcid+json'}
-
-        data = requests.get(url, headers=headers)
-        data_object = data.json()
-
-        if data_object['orcid-search-results']['num-found'] == 0:
-            print('Email not found.')
-        else:
-            return data_object
-
-    def id_search(self, query):
-        """Search by email using Python Requests
-        Parameters
-        ----------
-        :param query: string
-            Email address submitted for query
-        """
-        if self.sandbox is True:
-            url = 'http://sandbox.orcid.org/' + query
-        else:
-            url = 'http://pub.orcid.org/' + query
-
-        headers = {'Accept': 'application/orcid+json'}
-
-        data = requests.get(url, headers=headers)
-        data_object = data.json()
-        return data_object
 
     def print_basic(self):
         """Print basic search results for better user readability.
