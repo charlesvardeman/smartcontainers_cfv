@@ -31,11 +31,11 @@ class OrcidSearchResults(object):
         Parameters
         ----------
         :param query: string
-            A phrase, and group of search terms with boolean operators for lucene search
+            A phrase, or group of search terms with boolean operators for lucene search
 
         Returns
         -------
-        :returns: self.s_dict, dict type
+        :returns self.s_dict: dict type
             Records with minimal information based on search terms used.
         """
         search_results = self.api.search_public(query, start=0, rows=100)

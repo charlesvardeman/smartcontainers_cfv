@@ -1,7 +1,7 @@
 """CLI program to read the orcidconfigmanager.py and create a RDF configuration
     file with Turtle syntax
 """
-from orcidconfigmanager import OrcidConfig
+from orcidmanager import OrcidManager
 import os
 import rdflib
 
@@ -20,7 +20,7 @@ class ConfigManager(object):
             When s is true, click prompts will be executed and the basic_search() function will be executed.
         """
         self.filename = 'orcid_turtle.SCconfig'
-        self.config = OrcidConfig(orcid_id, orcid_email, sandbox)
+        self.config = OrcidManager(orcid_id, orcid_email, sandbox)
 
         if os.environ.get('SC_HOME'):
             self.config_path = os.getenv('SC_HOME')

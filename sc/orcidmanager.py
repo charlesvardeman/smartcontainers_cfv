@@ -2,13 +2,13 @@
     Turtle syntax.  It passes this data to the configmanager.py
 """
 import requests
-from search import OrcidSearchResults
+from orcidsearch import OrcidSearchResults
 
 __author__ = 'cwilli34'
 
 
-class OrcidConfig(object):
-    """Class for OrcidConfig"""
+class OrcidManager(object):
+    """Class for OrcidManager"""
 
     def __init__(self, orcid_id=None, orcid_email=None, sandbox=True):
         """Initialize
@@ -45,7 +45,7 @@ class OrcidConfig(object):
 
         Returns
         -------
-        :returns: string
+        :returns orcid_id[0]: string
             returns the Orcid ID from the email search
         """
         if not self.data:
@@ -63,7 +63,7 @@ class OrcidConfig(object):
 
         Returns
         -------
-        :returns: string
+        :returns self.turtle_config.text: string
             user data in a text format with Turtle syntax
         """
         self.turtle_config = requests.get(self.url, headers=self.headers)

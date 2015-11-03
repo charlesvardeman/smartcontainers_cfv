@@ -98,16 +98,16 @@ def config_by_search():
     """Create a RDF Graph configuration file by searching for Orcid user."""
     search_type(args=['-c'])
 
-def config_by_id(id):
+def config_by_id(_id):
     """Create a RDF Graph configuration file by Orcid ID."""
     # Make sure sandbox variable is set correctly in cli.py before testing
-    config = ConfigManager(orcid_id=id, sandbox=sandbox)
+    config = ConfigManager(orcid_id=_id, sandbox=sandbox)
     config.write_config()
 
-def config_by_email(orcid_email):
+def config_by_email(_email):
     """Create a RDF Graph configuration file by Orcid email."""
     # Make sure sandbox variable is set correctly in cli.py before testing
-    email = 'email:' + orcid_email
+    email = 'email:' + _email
     config = ConfigManager(orcid_email=email, sandbox=sandbox)
     config.write_config()
 

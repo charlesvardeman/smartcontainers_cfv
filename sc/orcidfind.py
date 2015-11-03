@@ -1,7 +1,7 @@
 """CLI program to search for a user's Orcid ID, utilizes the python-orcid library
     and Orcid API.
 """
-from search import OrcidSearchResults
+from orcidsearch import OrcidSearchResults
 import click
 import simplejson as json
 import io
@@ -31,9 +31,9 @@ def print_version(ctx, param, value):
 # Initialize click
 @click.command()
 @click.option('--version', is_flag=True, callback=print_version, expose_value=False, is_eager=True)
-@click.option('-a', is_flag=True, help='Review a user profile by Orcid ID')
+@click.option('-a', is_flag=True, help='Review a user profile by Orcid ID (Advance Search)')
 @click.option('-b', is_flag=True, help='Basic search for user (when Orcid ID is unknown)')
-@click.option('-c', is_flag=True, help='Basic search and automated RDF config file creation (when Orcid ID is unknown)')
+@click.option('-c', is_flag=True, help='Basic search and automated config file creation (when Orcid ID is unknown)')
 def search_type(a, b, c):
     """Program main function that accepts click arguments. This function will call the basic_search() or
         advanced_search() functions
@@ -44,6 +44,9 @@ def search_type(a, b, c):
         When b is true, click prompts will be executed and the basic_search() function will be executed.
     :param a: flag
         When a is true, click prompts will be executed and the advanced_search() function will be executed
+    :param c: flag
+        When c is true, click prompts will be executed and the basic_search() function will be executed
+
     """
     if b or c:
         # Prompt and get search terms
@@ -103,8 +106,8 @@ def search_type(a, b, c):
               '4. Funding\n'
               '5. Peer Review\n'
               '6. Work\n'
-              '7. Create a RDF configuration file\n'
-              '8. Read a RDF configuration file\n')
+              '7. Create a configuration file\n'
+              '8. Read a configuration file\n')
         print('*Summary data is in JSON format. Sometimes a large amount of data can be passed from the '
               'Orcid database. Because of this all output will be written to an external text file.  The text '
               'file will be saved in the program\'s directory.\n')
@@ -225,8 +228,8 @@ def basic_search_config(query):
     else:
         id_dict = dict()
         # Get list of Orcid ID's and correspond count with ID
-        for i, id in enumerate(id_list):
-            id_dict[i + 1] = id
+        for i, d in enumerate(id_list):
+            id_dict[i + 1] = d
 
         selected = None
         while not selected:
@@ -250,7 +253,7 @@ def basic_search_config(query):
 
 def advanced_search(query, record_type):
     """ Function for initializing an advanced search for an orcid id.  Utilizes OrcidSearchResults() class
-        from search.py
+        from orcidsearch.py
 
     Parameters
     ----------
@@ -286,7 +289,8 @@ def advanced_search(query, record_type):
 
         # Ask user if they would like to send this information to file
         while True:
-            send_to_file = click.prompt('Would you like to send this output to a file [y/N]?', default='N', show_default=False)
+            send_to_file = click.prompt('Would you like to send this output to a file [y/N]?', default='N',
+                                        show_default=False)
 
             if send_to_file in ('y', 'Y', 'yes', 'YES', 'Yes'):
                 with io.open(query + '_' + record_type + '_' + put_code + '.json', 'w', encoding='utf8') \
@@ -323,7 +327,7 @@ def advanced_search(query, record_type):
         print('')
 
         if new_instance in ('y', 'Y', 'yes', 'YES', 'Yes'):
-            search_type(args = ['-a'])
+            search_type(args=['-a'])
             break
         elif new_instance in ('exit', 'EXIT', 'Exit'):
             exit(1)
