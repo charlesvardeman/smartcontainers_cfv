@@ -51,8 +51,8 @@ class OrcidConfig(object):
         if not self.data:
             print('Email not found.')
         else:
-            id = self.data.keys()
-            return id[0]
+            orcid_id = self.data.keys()
+            return orcid_id[0]
 
     def get_turtle(self):
         """Get the user information in a Turtle syntax
