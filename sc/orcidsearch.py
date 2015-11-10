@@ -1,14 +1,11 @@
 from colorama import Fore, Style
-import orcid
-import requests
+from orcid import PublicAPI
 
-# For testing
-import simplejson as json
 
 __author__ = 'cwilli34'
 
 
-class OrcidSearchResults(object):
+class OrcidSearchResults(PublicAPI):
 
     """Using the Orcid Public API."""
 
@@ -20,7 +17,7 @@ class OrcidSearchResults(object):
         :param sandbox: boolean
             Should the sandbox be used. True (default) indicates development mode.
         """
-        self.api = orcid.PublicAPI(sandbox)
+        self.api = PublicAPI(sandbox)
         self.s_dict = dict()
         self.orcid_id = []
         self.url = self.api._endpoint_public

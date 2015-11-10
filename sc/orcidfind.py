@@ -21,12 +21,14 @@ __author__ = 'cwilli34'
 # Set sandbox variable
 sandbox = False
 
+
 # Print program version
 def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
     click.echo(__version__)
     ctx.exit()
+
 
 # Initialize click
 @click.command()
@@ -40,10 +42,10 @@ def search_type(a, b, c):
 
     Parameters
     ----------
-    :param b: flag
-        When b is true, click prompts will be executed and the basic_search() function will be executed.
     :param a: flag
         When a is true, click prompts will be executed and the advanced_search() function will be executed
+    :param b: flag
+        When b is true, click prompts will be executed and the basic_search() function will be executed.
     :param c: flag
         When c is true, click prompts will be executed and the basic_search() function will be executed
 
@@ -55,7 +57,8 @@ def search_type(a, b, c):
             'first_name': click.prompt('Please enter a first name', default='', show_default=False),
             'last_name': click.prompt('Please enter a last name', default='', show_default=False),
             'email': click.prompt('Please enter an email', default='', show_default=False),
-            'keywords': click.prompt('Please enter some keywords (like country, department or institution)', default='', show_default=False)
+            'keywords': click.prompt('Please enter some keywords (like country, department or institution)',
+                                     default='', show_default=False)
         }
         print('')
 
@@ -73,18 +76,18 @@ def search_type(a, b, c):
 
         # Configures search string for lucene formatting
         if first_name and last_name:
-            first_name = first_name + ' AND '
+            first_name += ' AND '
         elif first_name and (email or keywords):
-            first_name = first_name + ' AND '
+            first_name += ' AND '
         if last_name and (email or keywords):
-            last_name = last_name + ' AND '
+            last_name += ' AND '
         if not last_name and not first_name:
-            if email and (keywords):
-                email = email + ' AND '
+            if email and keywords:
+                email += ' AND '
         else:
             if email and keywords:
                 email = '(' + email + ' AND '
-                keywords = keywords + ')'
+                keywords += ')'
 
         search_terms = first_name + last_name + email + keywords
 
@@ -174,12 +177,13 @@ def basic_search(query):
         print('')
 
         if new_instance in ('y', 'Y', 'yes', 'YES', 'Yes'):
-            search_type(args = ['-b'])
+            search_type(args=['-b'])
             break
         elif new_instance in ('n', 'N', 'no', 'NO', 'No'):
             exit(1)
         else:
             print('You did not pick an appropriate answer.')
+
 
 def basic_search_config(query):
     """ Function for initializing a search for an orcid id, and then creates a RDF
@@ -216,13 +220,14 @@ def basic_search_config(query):
     # Write config if only one result was found
     if total_results == 1:
         orcid_id = id_list[0]
-        config = ConfigManager(orcid_id=orcid_id, sandbox=sandbox)
+        config = ConfigManager()
+        config.get_config(_id=orcid_id, sandbox=sandbox)
         config.write_config()
 
     # If no results are found
     elif total_results == 0:
         print("No results where found. Please try again.\n")
-        search_type(args = ['-c'])
+        search_type(args=['-c'])
 
     # Allow user to select Orcid profile if multiple results are found
     else:
@@ -234,22 +239,25 @@ def basic_search_config(query):
         selected = None
         while not selected:
             try:
-                selected = click.prompt('Select the result # of the record (Type "N" for another search, "Exit" to abort)')
+                selected = click.prompt('Select the result # of the record (Type "N" for another search, '
+                                        '"Exit" to abort)')
                 print("")
                 orcid_id = id_dict[int(selected)]
-                config = ConfigManager(orcid_id=orcid_id, sandbox=sandbox)
+                config = ConfigManager()
+                config.get_config(_id=orcid_id, sandbox=sandbox)
                 config.write_config()
-            except (KeyError):
+            except KeyError:
                 print('That is not a valid selection.  Please try again.\n')
                 selected = None
-            except (ValueError):
+            except ValueError:
                 if selected in ('N', 'n'):
-                    search_type(args = ['-c'])
+                    search_type(args=['-c'])
                 elif selected in ('exit', 'Exit', 'EXIT'):
                     exit()
                 else:
                     print('That is not a valid selection.  Please try again.\n')
                     selected = None
+
 
 def advanced_search(query, record_type):
     """ Function for initializing an advanced search for an orcid id.  Utilizes OrcidSearchResults() class
@@ -275,10 +283,11 @@ def advanced_search(query, record_type):
 
     # Will be 'not None' only if record type is other than 'activities'
     if record_type == 'write-rdf':
-        config = ConfigManager(orcid_id=query, sandbox=sandbox)
+        config = ConfigManager()
+        config.get_config(_id=query, sandbox=sandbox)
         config.write_config()
     elif record_type == 'read-rdf':
-        config = ConfigManager(orcid_id=query, sandbox=sandbox)
+        config = ConfigManager()
         rdf_graph = config.read_config()
         print rdf_graph
     elif record_type is not None:
