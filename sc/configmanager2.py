@@ -8,6 +8,7 @@ import rdflib
 __author__ = 'cwilli34'
 
 
+# noinspection PyBroadException,PyBroadException
 class ConfigManager(object):
     """ Configuration File Creator """
 

@@ -8,6 +8,7 @@ import os
 __author__ = 'cwilli34'
 
 
+# noinspection PyBroadException,PyBroadException
 class ConfigManager(object):
     """ Configuration File Creator """
 
@@ -134,7 +135,6 @@ class ConfigManager(object):
             else:
                 keys = data.keys()
                 config_id = keys[0]
-                print config.get_turtle()
                 turtle_data = config.get_turtle()
                 self.config_obj = {
                     'orcid-id': config_id,

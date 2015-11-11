@@ -7,6 +7,7 @@ from orcidsearch import OrcidSearchResults
 __author__ = 'cwilli34'
 
 
+# noinspection PyBroadException
 class OrcidManager(object):
     """Class for OrcidManager"""
 
@@ -74,3 +75,4 @@ class OrcidManager(object):
         else:
             print(str(self.url) + ", Status: " + str(self.turtle_config.status_code))
             return self.turtle_config.text
+

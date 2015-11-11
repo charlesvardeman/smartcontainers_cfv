@@ -5,7 +5,7 @@ from orcid import PublicAPI
 __author__ = 'cwilli34'
 
 
-class OrcidSearchResults(PublicAPI):
+class OrcidSearchResults:
 
     """Using the Orcid Public API."""
 
@@ -17,10 +17,12 @@ class OrcidSearchResults(PublicAPI):
         :param sandbox: boolean
             Should the sandbox be used. True (default) indicates development mode.
         """
-        self.api = PublicAPI(sandbox)
+        self.api = PublicAPI(sandbox=sandbox)
         self.s_dict = dict()
         self.orcid_id = []
-        self.url = self.api._endpoint_public
+        self.url = self.api.endpoint_public
+        self.total_results = 0
+        self.actual_total_results = 0
 
     def basic_search(self, query):
         """Basic search based on search terms entered by user to find an Orcid ID.
@@ -171,10 +173,19 @@ class OrcidSearchResults(PublicAPI):
         -------
         :returns: None
         """
-        result_text = Fore.YELLOW + Style.BRIGHT + "Search Results: " + Fore.RESET + '(' + \
-                      str(self.total_results) + ' Total)'
-        result_warning_text = Fore.RED + Style.BRIGHT + "You have a lot of results!!\n" + Fore.RESET + \
-                              "Please modify or add more search terms to narrow your results.\n"
+        result_text = \
+            Fore.YELLOW + \
+            Style.BRIGHT + \
+            "Search Results: " + \
+            Fore.RESET + \
+            '(' + \
+            str(self.total_results) + \
+            ' Total)'
+        result_warning_text = \
+            Fore.RED + Style.BRIGHT + \
+            "You have a lot of results!!\n" + \
+            Fore.RESET + \
+            "Please modify or add more search terms to narrow your results.\n"
 
         print result_text + '\n'
         if self.total_results > 30:
@@ -189,7 +200,17 @@ class OrcidSearchResults(PublicAPI):
             l_name_text = Fore.BLUE + '{0:14}{1:40}'.format('Last Name:', Fore.RESET + l_name.encode('utf8'))
             f_name_text = Fore.BLUE + '{0:14}{1:40}'.format('First Name:',  Fore.RESET + f_name.encode('utf8'))
             email_text = Fore.BLUE + 'Email:' + Fore.RESET
-            count = Fore.BLUE + Style.BRIGHT + '{0:14}{1:40}'.format('Result:', Fore.RESET + Fore.YELLOW + Style.BRIGHT + str(i + 1).encode('utf8') + Fore.RESET)
+            count = \
+                Fore.BLUE + \
+                Style.BRIGHT + \
+                '{0:14}{1:40}'.format(
+                    'Result:',
+                    Fore.RESET +
+                    Fore.YELLOW +
+                    Style.BRIGHT +
+                    str(i + 1).encode('utf8') +
+                    Fore.RESET
+                )
 
             print count
             print id_text
@@ -217,10 +238,20 @@ class OrcidSearchResults(PublicAPI):
         -------
         :returns: None
         """
-        result_text = Fore.YELLOW + Style.BRIGHT + "Search Results: " + Fore.RESET + '(' + \
-                      str(self.total_results) + ' Total)'
-        result_warning_text = Fore.RED + Style.BRIGHT + "You have a lot of results!!\n" + Fore.RESET + \
-                              "Please modify or add more search terms to narrow your results.\n"
+        result_text = \
+            Fore.YELLOW + \
+            Style.BRIGHT + \
+            "Search Results: " + \
+            Fore.RESET + \
+            '(' + \
+            str(self.total_results) + \
+            ' Total)'
+        result_warning_text = \
+            Fore.RED + \
+            Style.BRIGHT + \
+            "You have a lot of results!!\n" + \
+            Fore.RESET + \
+            "Please modify or add more search terms to narrow your results.\n"
 
         print result_text + '\n'
         if self.total_results > 30:
@@ -234,7 +265,15 @@ class OrcidSearchResults(PublicAPI):
             id_text = p.encode('utf8')
             l_name_text = l_name.encode('utf8')
             f_name_text = f_name.encode('utf8')
-            count = Fore.BLUE + Style.BRIGHT + 'Result: ' + Fore.RESET + Fore.YELLOW + Style.BRIGHT + str(i + 1) + Fore.RESET
+            count = \
+                Fore.BLUE + \
+                Style.BRIGHT + \
+                'Result: ' + \
+                Fore.RESET + \
+                Fore.YELLOW + \
+                Style.BRIGHT + \
+                str(i + 1) + \
+                Fore.RESET
 
             email_list = []
 
@@ -242,8 +281,16 @@ class OrcidSearchResults(PublicAPI):
                 for e in email:
                     email_list.insert(e, email[e])
 
-            print(count + ', ' + id_text + ', ' + f_name_text + ' ' + l_name_text + (' (' if email_list else '') +  ', '.join(email_list) + (') ' if email_list else ''))
-
+            print(count +
+                  ', ' +
+                  id_text +
+                  ', ' +
+                  f_name_text +
+                  ' ' +
+                  l_name_text +
+                  (' (' if email_list else '') +
+                  ', '.join(email_list) +
+                  (') ' if email_list else ''))
         print('')
 
     # Possible to create advance printing dialogs so less code is required in the calling program
