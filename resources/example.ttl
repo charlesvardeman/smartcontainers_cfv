@@ -7,7 +7,8 @@
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix prov:    <http://www.w3.org/ns/prov#> .
 @prefix foaf:    <http://xmlns.com/foaf/0.1/> .
-
+#How does download activity relate to a container activity and a
+# provisioning activity.
 <sc:ActivityDownload> a prov:activity ;
 	rdfs: label "downloads base image dahuo2013/smartcontainer-test";
 	prov:startedAtTime "2015-11-10T01:30:00Z"^^xsd:dateTime;
@@ -19,18 +20,19 @@
 <sc:DockerSoftware> a prov:SoftwareAgent;
 	rdfs: label "Docker software version 1.9.0"
 	prov:atLocation <path/to/location>.
-
+# I don't think prov:Image exists in the prov namespace. We need to fix this.
+# URI should be of the form <urn:docker:ImageID>
 <sc:Image001> a prov:Image ;
 	rdfs: label "a base image on dockerhub: dahuo2013/smartcontainer-test",
 			"a clean image of ubuntu 14.10";
 	prov:wasAttributedTo <sc:dahuo2013>;
 	prov:wasGeneratedBy <sc:ActivityDownload>.
-
+# Da Huo won't exist as a uri in the sc namespace.
 <sc:dahuo2013> a prov:Person, foaf:Person;
 	rdfs: label "a notre dame grad student"
 	foaf:givenName "Da";
 	foaf:familyName "Huo";
-
+# URI should be of the form <urn:docker:containerid>
 <sc:Container001> a prov:Activity ;
     rdfs:label "activity add Maintainer's name into docker label" ;
     prov:generated <sc:Image003> ;
@@ -45,7 +47,10 @@
     rdfs:label "United States" ;
     gn:countryCode "US" ;
     gn:name "United States" .
-
+# We probably don't need to include the provenance of the 
+# personal profile document that provides the researcher 
+# information. Although we probably need to record the provenance
+# of smartcontainers in this same way.
 <http://orcid.org/0000-0003-4091-6059/>
     a       foaf:PersonalProfileDocument , foaf:OnlineAccount ;
     rdfs:label "0000-0003-4091-6059" ;
@@ -89,7 +94,8 @@
     prov:wasAssociatedWith <http://orcid.org/0000-0003-4091-6059>;
     prov:wasStartedBy <sc:DockerSoftware>;
     prov:wasInfluencedBy <sc:GNCwget>.
-
+# Good. We need to extend out other software agents that can be used by docker.
+# Should this be part of a seperate vocabulary...
 <sc:GNCwget> a prov:SoftwareAgent;
 	rdfs:lable "version xxx";
 	prov:atLocation <path/to/location>.
