@@ -4,7 +4,7 @@ Sample project to be edited.
 from pip.req import parse_requirements
 from setuptools import find_packages, setup
 
-dependencies = ['click', 'rdflib', 'rdflib-jsonld', 'sarge', 'orcid']
+dependencies = ['click', 'rdflib', 'rdflib-jsonld', 'sarge', 'orcid', 'kleio']
 
 setup(
     name='smartcontainers',
@@ -15,11 +15,14 @@ setup(
     author_email='charles.vardeman@gmail.com',
     description='Tool to track provenance of docker containers',
     long_description=__doc__,
-    packages=find_packages(exclude=['tests']),
+    packages=find_packages(exclude=['tests', 'docs', 'scripts', 'resources']),
     include_package_data=True,
     zip_safe=False,
     platforms='any',
     install_requires=dependencies,
+    dependency_links=[
+        "git+ssh://git@github.com/dahuo2013/kleio=kleio"
+    ],
     entry_points={
         'console_scripts': [
             'sc= sc.cli:cli',
