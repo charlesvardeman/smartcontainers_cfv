@@ -4,7 +4,8 @@ Sample project to be edited.
 from pip.req import parse_requirements
 from setuptools import find_packages, setup
 
-dependencies = ['click', 'rdflib', 'rdflib-jsonld', 'sarge', 'orcid', 'kleio']
+dependencies = ['click', 'rdflib', 'rdflib-jsonld', 'sarge', 'orcid',
+                'colorama', 'pprintpp', 'kleio']
 
 setup(
     name='smartcontainers',
