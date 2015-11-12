@@ -4,8 +4,8 @@ It is best to use a virtual environment for development work on smartcontainers.
 
 ```bash
 mkvirtualenv sc
+pip install -r dev-requirements.txt
 pip install --editable .
-pip install -r requirements_dev.txt
 ```
 
 Note. Smart Containers requires that docker also be installed and in your shell's path.
