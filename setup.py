@@ -5,7 +5,8 @@ from pip.req import parse_requirements
 from setuptools import find_packages, setup
 
 dependencies = ['click', 'rdflib', 'rdflib-jsonld', 'sarge', 'orcid',
-                'colorama', 'pprintpp', 'kleio']
+                'colorama', 'pprintpp',
+                'git+ssh://git@gihub/charlesvardeman/kleio@master']
 
 setup(
     name='smartcontainers',
@@ -22,7 +23,7 @@ setup(
     platforms='any',
     install_requires=dependencies,
     dependency_links=[
-        "git+ssh://git@github.com/dahuo2013/kleio=kleio"
+        "git+ssh://git@github.com/charlesvardeman/kleio=kleio"
     ],
     entry_points={
         'console_scripts': [

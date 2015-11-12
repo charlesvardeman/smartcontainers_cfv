@@ -126,7 +126,7 @@
 <sc:python> a prov:SoftwareAgent;
 	rdfs:label "version 2.7.6";
 	prov:atLocation <path/to/location>.
-
+# Inside docker container.
 <sc:outputfile> a prov:Entity;
 	rdfs:label "outputfile from experiment";
 	rdfs:wasDerivedFrom <http://research_raw_data>;
