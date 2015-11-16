@@ -1,8 +1,9 @@
 import click
 import os
 from configmanager import ConfigManager
+from orcidmanager import OrcidManager
+from orcidprofilesearch import orcid_search
 from docker import Docker
-from orcidfind import search_type
 
 # from ._version import __version__
 
@@ -114,8 +115,11 @@ def orcid(i, e):
 
 def config_by_search():
     """Create a RDF Graph configuration file by searching for Orcid user."""
-    search_type(args=['-c'])
-
+    orcid_profile = orcid_search(sandbox=sandbox)
+    turtle_data = orcid_profile.get_turtle()
+    config_file = ConfigManager()
+    config_file.get_config(_id=orcid_profile.orcid_id, _data=turtle_data)
+    config_file.write_config()
 
 def config_by_id(orcid_id):
     """Create a RDF Graph configuration file by Orcid ID.
@@ -124,8 +128,10 @@ def config_by_id(orcid_id):
         Orcid ID used for the configuration file ID and to create the configuration file.
     """
     # Make sure sandbox variable is set correctly in cli.py before testing
+    orcid_profile = OrcidManager(orcid_id=orcid_id, sandbox=sandbox)
+    turtle_data = orcid_profile.get_turtle()
     config_file = ConfigManager()
-    config_file.get_config(_id=orcid_id, sandbox=sandbox)
+    config_file.get_config(_id=orcid_profile.orcid_id, _data=turtle_data)
     config_file.write_config()
 
 
@@ -137,8 +143,10 @@ def config_by_email(email):
     """
     # Make sure sandbox variable is set correctly in cli.py before testing
     email = 'email:' + email
+    orcid_profile = OrcidManager(orcid_email=email, sandbox=sandbox)
+    turtle_data = orcid_profile.get_turtle()
     config_file = ConfigManager()
-    config_file.get_config(_email=email, sandbox=sandbox)
+    config_file.get_config(_id=orcid_profile.orcid_id, _data=turtle_data)
     config_file.write_config()
 
 #  End Orcid  #####################

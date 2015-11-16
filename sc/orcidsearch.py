@@ -180,12 +180,14 @@ class OrcidSearchResults:
             Fore.RESET + \
             '(' + \
             str(self.total_results) + \
-            ' Total)'
+            ' Total)' + \
+            Style.RESET_ALL
         result_warning_text = \
             Fore.RED + Style.BRIGHT + \
             "You have a lot of results!!\n" + \
             Fore.RESET + \
-            "Please modify or add more search terms to narrow your results.\n"
+            "Please modify or add more search terms to narrow your results.\n" + \
+            Style.RESET_ALL
 
         print result_text + '\n'
         if self.total_results > 30:
@@ -207,9 +209,9 @@ class OrcidSearchResults:
                     'Result:',
                     Fore.RESET +
                     Fore.YELLOW +
-                    Style.BRIGHT +
                     str(i + 1).encode('utf8') +
-                    Fore.RESET
+                    Fore.RESET+ \
+                    Style.RESET_ALL
                 )
 
             print count
@@ -225,7 +227,7 @@ class OrcidSearchResults:
                     else:
                         print '{0:14}'.format("") + '{0:40}'.format(email_address_text.encode('utf8'))
 
-            print("")
+            print("" + Style.RESET_ALL)
 
     def print_basic_alt(self):
         """Print basic search results for better user readability (Alternative Format).
@@ -245,13 +247,15 @@ class OrcidSearchResults:
             Fore.RESET + \
             '(' + \
             str(self.total_results) + \
-            ' Total)'
+            ' Total)' + \
+            Style.RESET_ALL
         result_warning_text = \
             Fore.RED + \
             Style.BRIGHT + \
             "You have a lot of results!!\n" + \
             Fore.RESET + \
-            "Please modify or add more search terms to narrow your results.\n"
+            "Please modify or add more search terms to narrow your results.\n" + \
+            Style.RESET_ALL
 
         print result_text + '\n'
         if self.total_results > 30:
@@ -271,9 +275,9 @@ class OrcidSearchResults:
                 'Result: ' + \
                 Fore.RESET + \
                 Fore.YELLOW + \
-                Style.BRIGHT + \
                 str(i + 1) + \
-                Fore.RESET
+                Fore.RESET + \
+                Style.RESET_ALL
 
             email_list = []
 
@@ -291,7 +295,7 @@ class OrcidSearchResults:
                   (' (' if email_list else '') +
                   ', '.join(email_list) +
                   (') ' if email_list else ''))
-        print('')
+        print("" + Style.RESET_ALL)
 
     # Possible to create advance printing dialogs so less code is required in the calling program
     # def print_advance(self):

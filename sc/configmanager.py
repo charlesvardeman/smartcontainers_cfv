@@ -102,7 +102,8 @@ class ConfigManager(object):
                 message = 'File could not be read.  Please try again.'
                 return message
 
-    def get_config(self, _id=None, _email=None, sandbox=True):
+    # def get_config(self, _query=None, _id=None, _email=None, sandbox=True):
+    def get_config(self, _id, _data):
         """Gets the configuration data to send to the write function
 
         Parameters
@@ -117,27 +118,13 @@ class ConfigManager(object):
         :returns config_obj: string
             Returns the config_id
         """
-        config = OrcidManager(orcid_id=_id, orcid_email=_email, sandbox=sandbox)
+        # config = OrcidManager(query=_query, orcid_id=_id, orcid_email=_email, sandbox=sandbox)
+        # config_id = config.orcid_id
+        # turtle_data = config.get_turtle()
 
-        if _id:
-            turtle_data = config.get_turtle()
-            self.config_obj = {
-                    'orcid-id': _id,
-                    'turtle-profile': turtle_data
-                }
-            return self.config_obj
-        elif _email:
-            search_obj = OrcidSearchResults(sandbox)
-            data = search_obj.basic_search(_email)
+        self.config_obj = {
+            'orcid-id': _id,
+            'turtle-profile': _data
+        }
 
-            if not data:
-                print('Email not found.')
-            else:
-                keys = data.keys()
-                config_id = keys[0]
-                turtle_data = config.get_turtle()
-                self.config_obj = {
-                    'orcid-id': config_id,
-                    'turtle-profile': turtle_data
-                }
-                return self.config_obj
+        return self.config_obj
