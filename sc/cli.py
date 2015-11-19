@@ -8,7 +8,7 @@ from docker import Docker
 # from ._version import __version__
 
 # Set sandbox variable
-sandbox = False
+sandbox = True
 
 
 class Settings(object):
@@ -90,7 +90,8 @@ def preserve():
     pass
 
 
-#  Orcid Commands
+#  Orcid Commands  ################################
+#  cwilli34
 @config.command()
 @click.option('-i', default=None, help='Search for an Orcid profile by Orcid ID.')
 @click.option('-e', default=None, help='Search for an Orcid profile by email.')
@@ -121,6 +122,7 @@ def config_by_search():
     config_file.get_config(_id=orcid_profile.orcid_id, _data=turtle_data)
     config_file.write_config()
 
+
 def config_by_id(orcid_id):
     """Create a RDF Graph configuration file by Orcid ID.
 
@@ -149,6 +151,6 @@ def config_by_email(email):
     config_file.get_config(_id=orcid_profile.orcid_id, _data=turtle_data)
     config_file.write_config()
 
-#  End Orcid  #####################
+#  End Orcid  ###############################
 if __name__ == '__main__':
     cli()

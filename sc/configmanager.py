@@ -1,7 +1,5 @@
 """Configuration manager for reading and writing SC configuration files."""
 
-from orcidsearch import OrcidSearchResults
-from orcidmanager import OrcidManager
 import simplejson as json
 import os
 

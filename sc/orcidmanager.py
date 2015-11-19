@@ -1,9 +1,9 @@
 """Class that receives an Orcid ID and Python requests to lookup user data and output to
     Turtle syntax.  It also finds an Orcid ID for basic search terms and email address searches.
 """
+
 import requests
-from orcidsearch import OrcidSearchResults
-# from orcidprofilesearch import orcid_search
+from orcidsearch.search import OrcidSearchResults
 import click
 
 __author__ = 'cwilli34'
@@ -36,13 +36,14 @@ class OrcidManager(object):
             self.search_obj = OrcidSearchResults(sandbox)
             self.orcid_id = orcid_id
 
-        try:
-            self.url = self.search_obj.url + '/' + self.orcid_id
-            self.headers = {'Accept': 'text/turtle'}
-            self.turtle_config = None
-        except:
-            print('Orcid ID or email is invalid.  Please try again.')
-            exit()
+        if self.orcid_id is not None:
+            try:
+                self.url = self.search_obj.api._endpoint_public + '/' + self.orcid_id
+                self.headers = {'Accept': 'text/turtle'}
+                self.turtle_config = None
+            except:
+                print('Orcid ID or email is invalid.  Please try again.')
+                exit()
 
     def get_id(self):
         """Get the Orcid_id from the email search
@@ -117,11 +118,11 @@ class OrcidManager(object):
         if total_results == 1:
             orcid_id = id_list[0]
             return orcid_id
-
         # If no results are found
         elif total_results == 0:
             print("No results where found. Please try again.\n")
-            orcid_search(sandbox=self.sandbox)
+            orcid_id = None
+            return orcid_id
 
         # Allow user to select Orcid profile if multiple results are found
         else:
@@ -143,7 +144,6 @@ class OrcidManager(object):
                     selected = None
                 except ValueError:
                     if selected in ('N', 'n'):
-                        # orcid_search(self.sandbox)
                         return None
                     elif selected in ('exit', 'Exit', 'EXIT'):
                         exit()

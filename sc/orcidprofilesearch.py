@@ -21,7 +21,6 @@ def orcid_search(sandbox):
     :returns orcid.orcid_Id: string
         Returns the Orcid ID from a basic search by user.
     """
-
     # Prompt and get search terms
     print('* You can leave fields blank *')
     query = {
@@ -67,7 +66,10 @@ def orcid_search(sandbox):
 
     # Call OrcidManager from orcidmanager.py
     orcid = OrcidManager(query=search_terms, sandbox=sandbox)
-    if orcid is None:
-        orcid_search(sandbox)
-    else:
-        return orcid
+
+    while orcid.orcid_id is None:
+        orcid = orcid_search(sandbox)
+        if orcid.orcid_id:
+            break
+
+    return orcid
