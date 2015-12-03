@@ -3,6 +3,7 @@ from sarge import Command, Capture, get_stdout, get_stderr, capture_stdout
 from io import TextIOWrapper
 import re
 import json
+import subprocess
 
 # We need to docker version greater than 1.6.0 to support
 # the label functionality.
@@ -13,9 +14,11 @@ snarf_docker_commands = ['run', 'build']
 # Default docker label key where smart container graph is stored.
 smart_container_key = 'sc'
 
+
 class Error(Exception):
     """Base class for docker module exceptions"""
     pass
+
 
 class DockerNotFoundError(RuntimeError):
     """Exception raised for missing docker command.
@@ -28,8 +31,10 @@ class DockerNotFoundError(RuntimeError):
         msg = "Please make sure docker is installed and in your path."
         self.arg = msg
 
+
 class DockerInsuficientVersionError(RuntimeError):
     """Exception raised for wrong version of docker command."""
+
     def __init__(self, msg):
         msg = "Please make sure docker is greater than %s" % min_docker_version
         self.arg = msg
@@ -40,10 +45,12 @@ class DockerServerError(RuntimeError):
         msg = "Cannot connect to server"
         self.arg = msg
 
+
 class DockerImageError(RuntimeError):
     def __init__(self, msg):
         msg = "No docker image specified or found."
         self.arg = msg
+
 
 class Docker:
     def __init__(self, command):
@@ -67,7 +74,7 @@ class Docker:
         location = which("docker")
         if location is None:
             raise DockerNotFoundError("Please make sure docker is installed "
-                "and in your path")
+                                      "and in your path")
         return location
 
     def check_docker_version(self, min_version=min_docker_version):
@@ -80,7 +87,7 @@ class Docker:
             version = version[:-1]
         if self.ver_cmp(version, min_version) < 0:
             raise DockerInsuficientVersionError(
-                 "Please  make sure docker is greater than %s" % min_version)
+                "Please  make sure docker is greater than %s" % min_version)
 
     def check_docker_connection(self):
         output = get_stdout('docker images')
@@ -124,47 +131,69 @@ class Docker:
         # temporary container with a label using docker run. We then save that
         # container to a new image with the same.
 
-        # First get tag and name for image id passed to method
-        repository, tag = self.get_image_info(imageID)
+        # Only proceed if the input string is valid Json
+        if self.validate_json(label):
 
-        # Now "attach" the label by running a new container from the imageID
-        label_cmd_string = str(self.location) + ' run --name = labeltmp --label=' + \
-            self.label_prefix + '=' + label + ' ' + imageID + ' /bin/echo'
-        print label_cmd_string
-        p = Command(label_cmd_string)
-        p.run(async=True)
+            # First get tag and name for image id passed to method
+            repository, tag = self.get_image_info(imageID)
 
-        # Save container with new label to new image with previous repo and tag
-        commit_cmd_string = str(self.location) + ' commit labeltemp ' + repository + ':' + tag
-        commit = Command(commit_cmd_string)
-        commit.run()
+            # Now "attach" the label by running a new container from the imageID
+            label_cmd_string = str(self.location) + " run --name=labeltmp --label=" + \
+                               self.label_prefix + "='" + label + "' " + imageID + " /bin/echo"
+            #print label_cmd_string
+            subprocess.call(label_cmd_string, shell=True)
 
-        # remove temporary container
-        rm_container_string = str(self.location) + ' rm labeltemp'
-        rm_container = Command(rm_container_string)
-        rm_container.run()
+            # Save container with new label to new image with previous repo and tag
+            commit_cmd_string = str(self.location) + ' commit labeltmp ' + repository + ':' + tag
+            commit = Command(commit_cmd_string)
+            commit.run()
+
+            # Stop the running container so it can be removed
+            stop_container_string = str(self.location) + ' stop labeltmp'
+            stop_container = Command(stop_container_string)
+            stop_container.run()
+
+            # remove temporary container
+            rm_container_string = str(self.location) + ' rm labeltmp'
+            rm_container = Command(rm_container_string)
+            rm_container.run()
+        else:
+            print "Invalid Input: not a valid Json string"
+
+    def validate_json(self,jsonString):
+        try:
+            json_object = json.loads(jsonString)
+        except ValueError, e:
+            return False
+        return True
+
 
     def get_label(self, image):
         """get_label returns smartconainer json string from docker image or container"""
+        self.get_metadata(image)
+
         if bool(self.metadata):
-            self.get_metadata(self, image)
-        label = self.metadata.get("Labels")
+            AllDictionary = json.loads(self.metadata)
+            ConfigDictionary = AllDictionary["Config"]
+            label = ConfigDictionary["Labels"]
         return label
 
-    # Quick hack to get image id for current phusion/baseimage
-    # for testing purposes. We assume that the image has already
-    # been pulled from the docker hub repo.
-    def get_imageID(self):
-        default_container = "phusion/baseimage"
+
+# Quick hack to get image id for current phusion/baseimage
+# for testing purposes. We assume that the image has already
+# been pulled from the docker hub repo.
+    def get_imageID(self, container):
+        # default_container = "phusion/baseimage"
         imageID = None
         docker_command = str(self.location) + ' images'
         output = capture_stdout(docker_command)
         for line in TextIOWrapper(output.stdout):
-            if default_container in repr(line):
+            if container in repr(line):
                 imageID = line.split()[2]
         if imageID is None:
             raise DockerImageError
         return imageID
+
 
     def get_image_info(self, imageID):
         docker_command = str(self.location) + ' images'
@@ -177,8 +206,9 @@ class Docker:
             raise DockerImageError
         return repository, tag
 
-    # Each image has a metadata record. This returns a list of all label
-    # strings contained in the metadata.
+
+# Each image has a metadata record. This returns a list of all label
+# strings contained in the metadata.
     def get_metadata(self, image):
         docker_command = str(self.location) + ' inspect ' + image
         print docker_command
@@ -187,11 +217,11 @@ class Docker:
         # Testing directly in the string works if the output is only
         # one line.
         # if 'No such image' in p.stdout:
-        #    raise DockerImageError
+        # raise DockerImageError
         # data = [json.loads(str(item)) for item in p.stdout.readline().strip().split('\n')]
         json_block = []
         line = p.stdout.readline()
-        while(True):
+        while (True):
             if not line: break
             if 'no such image' in line:
                 raise DockerImageError
@@ -204,20 +234,23 @@ class Docker:
             json_block.append(line)
             line = p.stdout.readline()
         s = ''.join(json_block)
-        self.metadata = json.loads(s)
+        s = s[1:-2]
+        self.metadata = s
+
 
     def set_image(self, image):
         """set_image
-        sets docker image id to docker object.
-        :param image: image id
-        """
+            sets docker image id to docker object.
+            :param image: image id
+            """
         self.imageID = image
+
 
     def set_command(self, command):
         """set_command
-        sets the docker command to docker object
-        :param command: docker command
-        """
+            sets the docker command to docker object
+            :param command: docker command
+            """
         self.command = command
 
     # Function to compare sematic versioning
@@ -228,3 +261,4 @@ class Docker:
 
     def ver_cmp(self, a, b):
         return cmp(self.ver_tuple(a), self.ver_tuple(b))
+
