@@ -221,8 +221,8 @@ class Docker:
         # data = [json.loads(str(item)) for item in p.stdout.readline().strip().split('\n')]
         json_block = []
         line = p.stdout.readline()
-        while (True):
-            if not line: break
+        while (line):
+            #if not line: break
             if 'no such image' in line:
                 raise DockerImageError
             # Stupid sarge appears to add a blank line between
