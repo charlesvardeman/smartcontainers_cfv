@@ -144,23 +144,50 @@ class Docker:
             subprocess.call(label_cmd_string, shell=True)
 
             # Save container with new label to new image with previous repo and tag
-            commit_cmd_string = str(self.location) + ' commit labeltmp ' + repository + ':' + tag
-            commit = Command(commit_cmd_string)
-            commit.run()
+            self.container_save_as('labeltmp', repository, tag)
 
             # Stop the running container so it can be removed
-            stop_container_string = str(self.location) + ' stop labeltmp'
-            stop_container = Command(stop_container_string)
-            stop_container.run()
+            self.stop_container('labeltmp')
 
             # remove temporary container
-            rm_container_string = str(self.location) + ' rm labeltmp'
-            rm_container = Command(rm_container_string)
-            rm_container.run()
+            self.remove_image('labeltmp')
         else:
             print "Invalid Input: not a valid Json string"
 
+    def container_save_as(self, name, saveas, tag):
+        """ Saves a container to a new image
+        :param name: the name of the container to be saved
+        :param saveas: the name of the image to be created
+        :param tag: the tag attached to the new image
+        :return: none
+        """
+        commit_cmd_string = str(self.location) + ' commit ' + name + ' ' + saveas + ':' + tag
+        commit = Command(commit_cmd_string)
+        commit.run()
+
+    def stop_container(self, name):
+        """ stops a specified container
+        :param name: name of the container to stop
+        :return:none
+        """
+        stop_container_string = str(self.location) + ' stop ' + name
+        stop_container = Command(stop_container_string)
+        stop_container.run()
+
+    def remove_image(self, name):
+        """ removes a named image
+        :param name: the name of the image to be removed
+        :return: none
+        """
+        rm_container_string = str(self.location) + ' rm ' + name
+        rm_container = Command(rm_container_string)
+        rm_container.run()
+
     def validate_json(self,jsonString):
+        """ validate_json performs a simple test of validity by attempting a load of the string
+        :param jsonString:
+        :return: true if successful
+        """
         try:
             json_object = json.loads(jsonString)
         except ValueError, e:
