@@ -109,9 +109,8 @@ class Docker:
 
         if self.location is None:
             self.find_docker()
-        cmd_string = str(self.location) + ' ' + self.command
-        p = Command(cmd_string)
-        p.run(async=True)
+        cmd_string = str(self.location) + self.command
+        subprocess.call(cmd_string, shell=True)
 
         for name in snarf_docker_commands:
             if name in self.command:
@@ -138,10 +137,13 @@ class Docker:
             repository, tag = self.get_image_info(imageID)
 
             # Now "attach" the label by running a new container from the imageID
-            label_cmd_string = str(self.location) + " run --name=labeltmp --label=" + \
+#            label_cmd_string = str(self.location) + " run --name=labeltmp --label=" + \
+#                               self.label_prefix + "='" + label + "' " + imageID + " /bin/echo"
+#            subprocess.call(label_cmd_string, shell=True)
+            label_cmd_string = " run --name=labeltmp --label=" + \
                                self.label_prefix + "='" + label + "' " + imageID + " /bin/echo"
-            #print label_cmd_string
-            subprocess.call(label_cmd_string, shell=True)
+            self.set_command(label_cmd_string)
+            self.do_command()
 
             # Save container with new label to new image with previous repo and tag
             self.container_save_as('labeltmp', repository, tag)
@@ -238,7 +240,6 @@ class Docker:
 # strings contained in the metadata.
     def get_metadata(self, image):
         docker_command = str(self.location) + ' inspect ' + image
-        print docker_command
         p = Command(docker_command, stdout=Capture(buffer_size=-1))
         p.run()
         # Testing directly in the string works if the output is only
@@ -249,7 +250,6 @@ class Docker:
         json_block = []
         line = p.stdout.readline()
         while (line):
-            #if not line: break
             if 'no such image' in line:
                 raise DockerImageError
             # Stupid sarge appears to add a blank line between
