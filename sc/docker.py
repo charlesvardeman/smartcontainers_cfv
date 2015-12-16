@@ -114,7 +114,7 @@ class Docker:
 
         for name in snarf_docker_commands:
             if name in self.command:
-                self.capture_cmd_workflow()
+                self.capture_cmd_workflow() #Captures information from logs.
 
     def capture_command(self):
         pass
@@ -122,7 +122,7 @@ class Docker:
     def capture_cmd_workflow(self):
         pass
 
-    def put_label_image(self, label, imageID):
+    def put_label_image(self, label):
         """put_label attaches json metadata to smartcontainer label"""
 
         # Due to the structure of docker, we have to do this in a series of
@@ -132,27 +132,32 @@ class Docker:
 
         # Only proceed if the input string is valid Json
         if self.validate_json(label):
+            if self.imageID is not None:
 
-            # First get tag and name for image id passed to method
-            repository, tag = self.get_image_info(imageID)
+                # First get tag and name for image id passed to method
+                repository, tag = self.get_image_info()
 
-            # Now "attach" the label by running a new container from the imageID
-#            label_cmd_string = str(self.location) + " run --name=labeltmp --label=" + \
-#                               self.label_prefix + "='" + label + "' " + imageID + " /bin/echo"
-#            subprocess.call(label_cmd_string, shell=True)
-            label_cmd_string = " run --name=labeltmp --label=" + \
-                               self.label_prefix + "='" + label + "' " + imageID + " /bin/echo"
-            self.set_command(label_cmd_string)
-            self.do_command()
+                # Now "attach" the label by running a new container from the imageID
+                # Not using do_command because of potential for endless looping if we are writing labels
+                # in the capture_cmd_workflow routine.
+                label_cmd_string = str(self.location) + " run --name=labeltmp --label=" + \
+                                  self.label_prefix + "='" + label + "' " + self.imageID + " /bin/echo"
+                subprocess.call(label_cmd_string, shell=True)
+                # label_cmd_string = " run --name=labeltmp --label=" + \
+                #                    self.label_prefix + "='" + label + "' " + imageID + " /bin/echo"
+                # self.set_command(label_cmd_string)
+                # self.do_command()
 
-            # Save container with new label to new image with previous repo and tag
-            self.container_save_as('labeltmp', repository, tag)
+                # Save container with new label to new image with previous repo and tag
+                self.container_save_as('labeltmp', repository, tag)
 
-            # Stop the running container so it can be removed
-            self.stop_container('labeltmp')
+                # Stop the running container so it can be removed
+                self.stop_container('labeltmp')
 
-            # remove temporary container
-            self.remove_image('labeltmp')
+                # remove temporary container
+                self.remove_image('labeltmp')
+            else:
+                print "Image ID invalid"
         else:
             print "Invalid Input: not a valid Json string"
 
@@ -197,9 +202,9 @@ class Docker:
         return True
 
 
-    def get_label(self, image):
+    def get_label(self):
         """get_label returns smartconainer json string from docker image or container"""
-        self.get_metadata(image)
+        self.get_metadata()
 
         if bool(self.metadata):
             AllDictionary = json.loads(self.metadata)
@@ -211,35 +216,37 @@ class Docker:
 # Quick hack to get image id for current phusion/baseimage
 # for testing purposes. We assume that the image has already
 # been pulled from the docker hub repo.
-    def get_imageID(self, container):
+    def get_imageID(self, image):
         # default_container = "phusion/baseimage"
         imageID = None
         docker_command = str(self.location) + ' images'
         output = capture_stdout(docker_command)
         for line in TextIOWrapper(output.stdout):
-            if container in repr(line):
+            if image in repr(line):
                 imageID = line.split()[2]
         if imageID is None:
             raise DockerImageError
         return imageID
 
 
-    def get_image_info(self, imageID):
+    def get_image_info(self):
         docker_command = str(self.location) + ' images'
         output = capture_stdout(docker_command)
-        for line in TextIOWrapper(output.stdout):
-            if imageID in repr(line):
-                repository = line.split()[0]
-                tag = line.split()[1]
-        if imageID is None:
+        if self.imageID is not None:
+            for line in TextIOWrapper(output.stdout):
+                if self.imageID in repr(line):
+                    repository = line.split()[0]
+                    tag = line.split()[1]
+            return repository, tag
+        else:
             raise DockerImageError
-        return repository, tag
+
 
 
 # Each image has a metadata record. This returns a list of all label
 # strings contained in the metadata.
-    def get_metadata(self, image):
-        docker_command = str(self.location) + ' inspect ' + image
+    def get_metadata(self):
+        docker_command = str(self.location) + ' inspect ' + self.imageID
         p = Command(docker_command, stdout=Capture(buffer_size=-1))
         p.run()
         # Testing directly in the string works if the output is only

@@ -61,17 +61,20 @@ def test_put_label_image():
     from sc import docker
     dockertester = docker.Docker('images')
     imageID = dockertester.get_imageID("phusion/baseimage")
+    dockertester.set_image(imageID)
     label = '{"Description":"A containerized foobar","Usage":"docker run --rm example/foobar [args]","License":"GPL","Version":"0.0.1-beta","aBoolean":true,"aNumber":0.01234,"aNestedArray":["a","b","c"]}'
-    dockertester.put_label_image(label, imageID)
+    dockertester.put_label_image(label)
 
 def test_docker_get_metadata():
     from sc import docker
     dockertester = docker.Docker('images')
     imageID = dockertester.get_imageID("phusion/baseimage")
-    label = dockertester.get_metadata(imageID)
+    dockertester.set_image(imageID)
+    label = dockertester.get_metadata()
 
 def test_docker_get_label():
     from sc import docker
     dockertester = docker.Docker('images')
     imageID = dockertester.get_imageID("phusion/baseimage")
-    label = dockertester.get_label(imageID)
+    dockertester.set_image(imageID)
+    label = dockertester.get_label()
