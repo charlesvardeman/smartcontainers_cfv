@@ -4,7 +4,6 @@ from io import TextIOWrapper
 import re
 import json
 import subprocess
-import rdflib
 
 
 # We need to docker version greater than 1.6.0 to support
