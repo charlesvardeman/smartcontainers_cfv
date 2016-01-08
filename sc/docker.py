@@ -5,6 +5,7 @@ import re
 import json
 import subprocess
 
+
 # We need to docker version greater than 1.6.0 to support
 # the label functionality.
 min_docker_version = '1.6.0'
@@ -51,6 +52,10 @@ class DockerImageError(RuntimeError):
         msg = "No docker image specified or found."
         self.arg = msg
 
+class DockerInputError(RuntimeError):
+    def __init__(self, msg):
+        msg = "Invalid input identified"
+        self.arg = msg
 
 class Docker:
     def __init__(self, command):
@@ -157,9 +162,9 @@ class Docker:
                 # remove temporary container
                 self.remove_image('labeltmp')
             else:
-                print "Image ID invalid"
+                raise DockerInputError("Image ID invalid")
         else:
-            print "Invalid Input: not a valid Json string"
+            raise DockerInputError("Not a valid Json string")
 
     def container_save_as(self, name, saveas, tag):
         """ Saves a container to a new image
@@ -285,7 +290,10 @@ class Docker:
             sets the docker command to docker object
             :param command: docker command
             """
-        self.command = command
+        if len(command) > 0:
+            self.command = command
+        else:
+            raise DockerInputError("Invalid Command")
 
     # Function to compare sematic versioning
     # See http://zxq9.com/archives/797 for explaination
