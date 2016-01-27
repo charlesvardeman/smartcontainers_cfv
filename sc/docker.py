@@ -4,6 +4,11 @@ from io import TextIOWrapper
 import re
 import json
 import subprocess
+import time
+import datetime
+import socket
+import os
+import random
 
 
 # We need to docker version greater than 1.6.0 to support
@@ -11,7 +16,7 @@ import subprocess
 min_docker_version = '1.6.0'
 
 # Default docker commands that sc can handle.
-snarf_docker_commands = ['run', 'build']
+snarf_docker_commands = ['commit', 'build']
 # Default docker label key where smart container graph is stored.
 smart_container_key = 'sc'
 
@@ -66,6 +71,7 @@ class Docker:
         self.container = None
         self.metadata = {}
         self.smartcontainer = {}
+        self.provfilename = "SCProv.jsonld"
 
     def sanity_check(self):
         """sanity_check checks existence and executability of docker."""
@@ -114,18 +120,93 @@ class Docker:
 
         if self.location is None:
             self.find_docker()
-        cmd_string = str(self.location) + self.command
-        subprocess.call(cmd_string, shell=True)
+        cmd_string = str(self.location) + ' ' + self.command
+        capture_flag = False
+        print cmd_string
 
         for name in snarf_docker_commands:
             if name in self.command:
-                self.capture_cmd_workflow() #Captures information from logs.
+                if name == 'build':
+                    self.capture_cmd_build(cmd_string) #Captures information from logs.
+                    capture_flag = True
+                elif name == 'commit':
+                    self.capture_cmd_commit(cmd_string)
+                    capture_flag = True
+        if not capture_flag:
+            #print 'here'
+            subprocess.call(cmd_string, shell=True)
 
     def capture_command(self):
         pass
 
-    def capture_cmd_workflow(self):
-        pass
+    def capture_cmd_build(self,cmd_string):
+        output = capture_stdout(cmd_string)
+        print output.stdout
+        print 'build'
+        #pass
+
+    def capture_cmd_commit(self,cmd_string):
+        #Initialize variables
+        hasProv = False
+
+        #Parse the command string to get the container id
+        #command = cmd_string.rsplit(' ', 1) [0]
+        container_id = cmd_string.rsplit(' ', -1) [2]
+        new_name_tag = cmd_string.rsplit(' ', -1) [3]
+        if ':' in new_name_tag:
+            new_name = new_name_tag.rsplit(':', -1) [0]
+            new_tag = new_name_tag.rsplit(':', -1) [1]
+        else:
+            new_name = new_name_tag
+            new_tag = ''
+        print new_name
+        #
+        file = capture_stdout("docker exec " + container_id + " ls /SmartContainer/")
+        for line in file.stdout:
+            if self.provfilename in line:
+                hasProv = True
+        if hasProv:
+            #Retrieve provenance file from the container
+            copy_cmd =  str(self.location) + ' cp ' + container_id + ":/SmartContainer/" + self.provfilename + " ."
+            rm_container = Command(copy_cmd)
+            rm_container.run()
+            #Append provenance data to file
+            self.add_prov_data(container_id)
+            #Copy provenance file back to the container
+            copy_cmd =  str(self.location) + ' cp ' + self.provfilename + " " + container_id + ":/SmartContainer/" + self.provfilename
+            rm_container = Command(copy_cmd)
+            rm_container.run()
+            #Remove the local copy of the provenance file
+            os.remove(self.provfilename)
+            self.container_save_as(container_id, new_name, new_tag)
+        else:
+            pass
+
+        #image_name = cmd_string.rsplit(' ', 1) [1]
+        #image_id = self.get_imageID(image_name)
+        #self.set_image(image_id)
+        #label = self.get_label()
+        #run_time = str(datetime.datetime.now())
+        #host_name = socket.gethostname()
+        #this_user = os.getlogin()
+        #prev_container = self.get_prev_container()
+        #docker_path = str(self.location)
+        #docker_version = self.get_docker_version()
+        #hash = random.getrandbits(32)
+        #prev_label = self.get_label()
+        #print "hash value: %08x" % hash
+        #subprocess.Popen(cmd_string, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
+        #time.sleep(1)
+        #container_id = self.get_containerID(image_name)
+        #print 'CID:' + container_id
+        #print 'commit'
+
+    def add_prov_data(self,container_id):
+        with open('SCProv.jsonld', 'a') as provfile:
+            provfile.write('<sc:' + str(random.getrandbits(32)) + '> a prov:Image ;\n')
+            provfile.write('\trdfs: label "image updated programmatically"\n')
+            provfile.write('\tprov:wasAttributedTo <http://orcid.org/0000-0003-4091-6059>;\n')
+            provfile.write('\tprov:wasGeneratedBy <sc:' + str(self.get_containerImage(container_id)) + '>.\n')
 
     def put_label_image(self, label):
         """put_label attaches json metadata to smartcontainer label"""
@@ -173,7 +254,9 @@ class Docker:
         :param tag: the tag attached to the new image
         :return: none
         """
-        commit_cmd_string = str(self.location) + ' commit ' + name + ' ' + saveas + ':' + tag
+        commit_cmd_string = str(self.location) + ' commit ' + name + ' ' + saveas
+        if tag != "":
+            commit_cmd_string = commit_cmd_string + ':' + tag
         commit = Command(commit_cmd_string)
         commit.run()
 
@@ -217,6 +300,17 @@ class Docker:
             label = ConfigDictionary["Labels"]
         return label
 
+    def get_prev_container(self):
+        """
+        :return: Container ID of previous container from docker image
+        """
+        self.get_metadata()
+
+        if bool(self.metadata):
+            AllDictionary = json.loads(self.metadata)
+            #ConfigDictionary = AllDictionary["Config"]
+            container = AllDictionary["Container"]
+        return container
 
 # Quick hack to get image id for current phusion/baseimage
 # for testing purposes. We assume that the image has already
@@ -230,9 +324,40 @@ class Docker:
             if image in repr(line):
                 imageID = line.split()[2]
         if imageID is None:
-            raise DockerImageError
+            raise DockerImageError('No Image')
         return imageID
 
+    def get_containerID(self, image):
+        containerID = None
+        docker_command = str(self.location) + ' ps -a'
+        #print docker_command
+        output = capture_stdout(docker_command)
+        for line in TextIOWrapper(output.stdout):
+            if image in repr(line):
+                containerID = line.split()[0]
+        if containerID is None:
+            raise DockerImageError('No Container')
+        return containerID
+
+    def get_containerImage(self, containerID):
+        imageName = None
+        docker_command = str(self.location) + ' ps -a'
+        #print docker_command
+        output = capture_stdout(docker_command)
+        for line in TextIOWrapper(output.stdout):
+            if containerID in repr(line):
+                imageName = line.split()[1]
+        if imageName is None:
+            raise DockerImageError('No Image for Container')
+        return imageName
+
+    def get_docker_version(self):
+        docker_version = None
+        docker_command = str(self.location) + " version --format '{{.Server.Version}}'"
+        output = capture_stdout(docker_command)
+        for line in TextIOWrapper(output.stdout):
+            docker_version = line
+        return docker_version
 
     def get_image_info(self):
         docker_command = str(self.location) + ' images'
