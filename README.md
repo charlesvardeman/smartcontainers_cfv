@@ -6,6 +6,23 @@ SmartConainers is being developed as part of the Data and Software Preservation 
 
 Current build status  build status: [![Build Status](https://travis-ci.org/charlesvardeman/smartcontainers.svg?branch=master)](https://travis-ci.org/charlesvardeman/smartcontainers)
 
+SmartContainers provides a command line tool, sc, that provides a surrogate for the docker command line tool.
+
+```bash
+sc --docker <docker command line>
+```
+
+Will create a docker label with provenance metadata using the W3C Prov-o vocabulary with respect to the
+computational environment created or provided by a particular docker container.
+
+A python setup file is provided for installation of the command line utility. It is recommended to install the tool in a Python virtual environment.
+
+```bash
+pip install .
+```
+
+Will install the tool and it's dependencies in a virtual environment. 
+
 ## OrcidFind
 SmartContainers incluces the **orcidfind** package.  Documentation can be found here:
 
@@ -28,4 +45,3 @@ If you already know the Orcid ID or Orcid email of the user that you want to wri
 `python cli.py config orcid -e your_email@gmail.com`
 
 The configuration file will be written to a .sc directory created in your home directory.  In the future, the configuration file location will be a user option.
-
