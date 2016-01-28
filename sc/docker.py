@@ -179,6 +179,13 @@ class Docker:
             #Remove the local copy of the provenance file
             os.remove(self.provfilename)
             self.container_save_as(container_id, new_name, new_tag)
+            #Build new label string... information from Chuck needed.
+            new_label_string = ""
+            #Write string to new image using put_label_image
+            image_id = self.get_imageID(new_name)
+            #print image_id
+            self.set_image(image_id)
+            self.put_label_image(new_label_string)
         else:
             pass
 
