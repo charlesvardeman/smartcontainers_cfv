@@ -9,6 +9,7 @@ import datetime
 import socket
 import os
 import random
+import provinator
 
 
 # We need to docker version greater than 1.6.0 to support
@@ -180,7 +181,7 @@ class Docker:
             os.remove(self.provfilename)
             self.container_save_as(container_id, new_name, new_tag)
             #Build new label string... information from Chuck needed.
-            new_label_string = ""
+            new_label_string = provinator.get_json_ld()
             #Write string to new image using put_label_image
             image_id = self.get_imageID(new_name)
             #print image_id
@@ -210,10 +211,11 @@ class Docker:
 
     def add_prov_data(self,container_id):
         with open('SCProv.jsonld', 'a') as provfile:
-            provfile.write('<sc:' + str(random.getrandbits(32)) + '> a prov:Image ;\n')
-            provfile.write('\trdfs: label "image updated programmatically"\n')
-            provfile.write('\tprov:wasAttributedTo <http://orcid.org/0000-0003-4091-6059>;\n')
-            provfile.write('\tprov:wasGeneratedBy <sc:' + str(self.get_containerImage(container_id)) + '>.\n')
+            # provfile.write('<sc:' + str(random.getrandbits(32)) + '> a prov:Image ;\n')
+            # provfile.write('\trdfs: label "image updated programmatically"\n')
+            # provfile.write('\tprov:wasAttributedTo <http://orcid.org/0000-0003-4091-6059>;\n')
+            # provfile.write('\tprov:wasGeneratedBy <sc:' + str(self.get_containerImage(container_id)) + '>.\n')
+            provfile.write(provinator.get_json_ld())
 
     def put_label_image(self, label):
         """put_label attaches json metadata to smartcontainer label"""
