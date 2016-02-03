@@ -137,3 +137,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def get_json_ld():
+    return ds.serialize(format='json-ld', context=context, indent=4)
