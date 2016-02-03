@@ -17,7 +17,7 @@ import provinator
 min_docker_version = '1.6.0'
 
 # Default docker commands that sc can handle.
-snarf_docker_commands = ['commit', 'build']
+snarf_docker_commands = ['commit', 'build', 'stop', 'run']
 # Default docker label key where smart container graph is stored.
 smart_container_key = 'sc'
 
@@ -133,6 +133,12 @@ class Docker:
                 elif name == 'commit':
                     self.capture_cmd_commit(cmd_string)
                     capture_flag = True
+                elif name == 'run':
+                    #Execute some procedure
+                    capture_flag = True
+                elif name == 'stop':
+                    #Execute some procedure
+                    capture_flag = True
         if not capture_flag:
             #print 'here'
             subprocess.call(cmd_string, shell=True)
@@ -181,7 +187,7 @@ class Docker:
             os.remove(self.provfilename)
             self.container_save_as(container_id, new_name, new_tag)
             #Build new label string... information from Chuck needed.
-            new_label_string = provinator.get_json_ld()
+            new_label_string = provinator.get_commit_label()
             #Write string to new image using put_label_image
             image_id = self.get_imageID(new_name)
             #print image_id
@@ -215,7 +221,7 @@ class Docker:
             # provfile.write('\trdfs: label "image updated programmatically"\n')
             # provfile.write('\tprov:wasAttributedTo <http://orcid.org/0000-0003-4091-6059>;\n')
             # provfile.write('\tprov:wasGeneratedBy <sc:' + str(self.get_containerImage(container_id)) + '>.\n')
-            provfile.write(provinator.get_json_ld())
+            provfile.write(provinator.get_commit_data())
 
     def put_label_image(self, label):
         """put_label attaches json metadata to smartcontainer label"""
