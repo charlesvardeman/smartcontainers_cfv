@@ -10,7 +10,9 @@ import socket
 import os
 import random
 import provinator
-
+import docker.tls as tls
+import docker
+import client
 
 # We need to docker version greater than 1.6.0 to support
 # the label functionality.
@@ -63,7 +65,7 @@ class DockerInputError(RuntimeError):
         msg = "Invalid input identified"
         self.arg = msg
 
-class Docker:
+class DockerCli:
     def __init__(self, command):
         self.command = command
         self.label_prefix = "smartcontainer"
@@ -73,7 +75,25 @@ class Docker:
         self.metadata = {}
         self.smartcontainer = {}
         self.provfilename = "SCProv.jsonld"
+        # Test configuration for docker-machine. We need a way
+        # to set the sockets file if on linux.
+        # Get command line arguments for DOCKER HOST
+        docker_host = os.environ["DOCKER_HOST"]
+        docker_cert_path = os.environ["DOCKER_CERT_PATH"]
+        docker_machine_name = os.environ["DOCKER_MACHINE_NAME"]
 
+        # Build tls information 
+        
+        tls_config = tls.TLSConfig(
+            client_cert=(os.path.join(docker_cert_path, 'cert.pem'), os.path.join(docker_cert_path,'key.pem')),
+            ca_cert=os.path.join(docker_cert_path, 'ca.pem'),
+            verify=True,
+            assert_hostname = False
+        )
+        # Replace tcp: with https: in docker host.
+        docker_host_https = docker_host.replace("tcp","https")
+        self.dcli = client.scClient(base_url=docker_host_https, tls=tls_config)
+        print self.dcli.info()
     def sanity_check(self):
         """sanity_check checks existence and executability of docker."""
         if self.location is None:
