@@ -5,7 +5,7 @@ from pip.req import parse_requirements
 from setuptools import find_packages, setup
 
 dependencies = ['click==4.1', 'rdflib', 'rdflib-jsonld', 'sarge', 'orcid',
-                'https://github.com/charlesvardeman/orcidfind/tarball/master#egg=orcidfind', 'pyparsing', 'pytz', ]
+                'orcidfind', 'pyparsing', 'pytz', ]
 
 setup(
     name='smartcontainers',
@@ -18,6 +18,9 @@ setup(
     long_description=__doc__,
     packages=find_packages(exclude=['tests', 'docs', 'scripts', 'resources']),
     include_package_data=True,
+    dependency_links=[
+        "git+ssh://git@github.com/charlesvardeman/orcidfind#egg=orcidfind"
+    ],
     zip_safe=False,
     platforms='any',
     install_requires=dependencies,
