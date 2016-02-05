@@ -19,7 +19,7 @@ setup(
     packages=find_packages(exclude=['tests', 'docs', 'scripts', 'resources']),
     include_package_data=True,
     dependency_links=[
-        "git+ssh://git@github.com/charlesvardeman/orcidfind#egg=orcidfind"
+        "git+ssh://git@github.com/charlesvardeman/orcidfind/tarball/master#egg=orcidfind"
     ],
     zip_safe=False,
     platforms='any',
