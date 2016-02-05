@@ -93,7 +93,7 @@ class DockerCli:
         # Replace tcp: with https: in docker host.
         docker_host_https = docker_host.replace("tcp","https")
         self.dcli = client.scClient(base_url=docker_host_https, tls=tls_config)
-        print self.dcli.info()
+        #print self.dcli.info()
     def sanity_check(self):
         """sanity_check checks existence and executability of docker."""
         if self.location is None:
