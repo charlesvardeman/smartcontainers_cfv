@@ -23,13 +23,6 @@ pip install .
 
 Will install the tool and it's dependencies in a virtual environment. 
 
-## OrcidFind
-SmartContainers incluces the **orcidfind** package.  Documentation can be found here:
-
-[https://github.com/crcresearch/orcidfind](https://github.com/crcresearch/orcidfind)
-
-The OrcidSearch module packaged with OrcidFind has been combined with the SmartContainers configuration manager (configmanager.py).  
-
 ### Usage
 To search [Orcid.org](http://www.orcid.org) for an Orcid ID and write the RDF graph information to the configuration file from the command line or shell:
 
