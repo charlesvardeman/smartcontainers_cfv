@@ -157,3 +157,9 @@ if __name__ == "__main__":
 
 def get_json_ld():
     return ds.serialize(format='json-ld', context=context, indent=4)
+
+def get_commit_data():
+    return ds.serialize(format='json-ld', context=context, indent=4)
+
+def get_commit_label():
+    return ds.serialize(format='json-ld', context=context, indent=4)
