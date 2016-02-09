@@ -24,14 +24,31 @@ OWL = Namespace("http://www.w3.org/2002/07/owl#")
 DC = Namespace("http://purl.org/dc/terms/")
 UUIDNS = Namespace("urn:uuid:")
 DOCKER = Namespace("http://w3id.org/daspos/docker#")
+# W3C namespace:
+POSIX = Namespace("http://www.w3.org/ns/posix/stat#")
+ACL = Namespace("http://www.w3.org/ns/auth/acl#")
+
+# DASPOS namespaces
 SC = Namespace("https://w3id.org/daspos/smartcontainers#")
 CA = Namespace("https://w3id.org/daspos/computationalactivity#")
 CE = Namespace("https://w3id.org/daspos/computationalenvironment#")
+
 
 # Need to handle DOI
 # http://bitwacker.com/2010/02/04/dois-uris-and-cool-resolution/
 
 ds.bind("prov", PROV)
+ds.bind("ore", ORE)
+ds.bind("owl", OWL)
+ds.bind("dc", DC)
+ds.bind("uuidns", UUIDNS)
+ds.bind("docker", DOCKER)
+ds.bind("posix", POSIX)
+ds.bind("acl", ACL)
+ds.bind("sc", SC)
+ds.bind("ca", CA)
+ds.bind("ce", CE)
+
 default_graph = ds
 
 
