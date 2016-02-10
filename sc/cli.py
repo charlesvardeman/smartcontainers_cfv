@@ -3,7 +3,7 @@ import os
 from configmanager import ConfigManager
 from orcidmanager import OrcidManager
 from orcidprofilesearch import orcid_search
-from docker import Docker
+from dockercli import DockerCli
 
 # from ._version import __version__
 
@@ -52,7 +52,7 @@ def docker(command):
 
     :param command: string
     """
-    processdocker = Docker(command)
+    processdocker = DockerCli(command)
     processdocker.sanity_check()
     processdocker.do_command()
 
