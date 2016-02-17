@@ -77,6 +77,7 @@ class DockerCli:
         self.smartcontainer = {}
         self.provfilepath = "/SmartContainer/"
         self.provfilename = "SCProv.jsonld"
+        self.scmd = scMetadata.scMetadata()
 
         # # Test configuration for docker-machine. We need a way
         # # to set the sockets file if on linux.
@@ -179,7 +180,6 @@ class DockerCli:
     def capture_cmd_commit(self,cmd_string):
         #Initialize variables
         hasProv = False
-        scmd = scMetadata.scMetadata()
 
         #Parse the command string to get the container id
         #command = cmd_string.rsplit(' ', 1) [0]
@@ -191,13 +191,13 @@ class DockerCli:
         else:
             new_name = new_name_tag
             new_tag = ''
-        if scmd.hasProv(container_id,self.provfilename,self.provfilepath):
+        if self.hasProv(container_id,self.provfilename,self.provfilepath):
             #Retrieve provenance file from the container
-            scmd.fileCopyOut(self.location, container_id,self.provfilename, self.provfilepath)
+            self.fileCopyOut(self.location, container_id,self.provfilename, self.provfilepath)
             #Append provenance data to file
-            scmd.appendData(self.provfilename)
+            self.scmd.appendData(self.provfilename)
             #Copy provenance file back to the container
-            scmd.fileCopyIn(self.location, container_id, self.provfilename, self.provfilepath)
+            self.fileCopyIn(self.location, container_id, self.provfilename, self.provfilepath)
             #Remove the local copy of the provenance file
             os.remove(self.provfilename)
             #Commit container changes
@@ -231,13 +231,22 @@ class DockerCli:
         #print 'CID:' + container_id
         #print 'commit'
 
-    def add_prov_data(self):
-        with open('SCProv.jsonld', 'a') as provfile:
-            # provfile.write('<sc:' + str(random.getrandbits(32)) + '> a prov:Image ;\n')
-            # provfile.write('\trdfs: label "image updated programmatically"\n')
-            # provfile.write('\tprov:wasAttributedTo <http://orcid.org/0000-0003-4091-6059>;\n')
-            # provfile.write('\tprov:wasGeneratedBy <sc:' + str(self.get_containerImage(container_id)) + '>.\n')
-            provfile.write(provinator.get_commit_data())
+    def fileCopyOut(self, dockerlocation, containerid, filename, path):
+        copy_cmd =  str(dockerlocation) + ' cp ' + containerid + ":" + path + filename + " ."
+        thisCommand = Command(copy_cmd)
+        thisCommand.run()
+
+    def fileCopyIn(self, dockerlocation, containerid, filename, path):
+        copy_cmd =  str(dockerlocation) + ' cp '+ filename + " " + containerid + ":" + path + filename
+        thisCommand = Command(copy_cmd)
+        thisCommand.run()
+
+    def hasProv(self, containerid, filename, path):
+        file = capture_stdout("docker exec " + containerid + " ls " + path)
+        for line in file.stdout:
+            if filename in line:
+                return True
+        return False
 
     def put_label_image(self, label):
         """put_label attaches json metadata to smartcontainer label"""
