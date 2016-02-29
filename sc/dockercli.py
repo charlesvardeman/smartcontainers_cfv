@@ -13,6 +13,7 @@ import provinator
 import docker.tls as tls
 import docker
 import client
+import scMetadata
 
 # We need to docker version greater than 1.6.0 to support
 # the label functionality.
@@ -74,26 +75,30 @@ class DockerCli:
         self.container = None
         self.metadata = {}
         self.smartcontainer = {}
+        self.provfilepath = "/SmartContainer/"
         self.provfilename = "SCProv.jsonld"
-        # Test configuration for docker-machine. We need a way
-        # to set the sockets file if on linux.
-        # Get command line arguments for DOCKER HOST
-        docker_host = os.environ["DOCKER_HOST"]
-        docker_cert_path = os.environ["DOCKER_CERT_PATH"]
-        docker_machine_name = os.environ["DOCKER_MACHINE_NAME"]
+        self.scmd = scMetadata.scMetadata()
 
-        # Build tls information 
-        
-        tls_config = tls.TLSConfig(
-            client_cert=(os.path.join(docker_cert_path, 'cert.pem'), os.path.join(docker_cert_path,'key.pem')),
-            ca_cert=os.path.join(docker_cert_path, 'ca.pem'),
-            verify=True,
-            assert_hostname = False
-        )
-        # Replace tcp: with https: in docker host.
-        docker_host_https = docker_host.replace("tcp","https")
-        self.dcli = client.scClient(base_url=docker_host_https, tls=tls_config)
-        #print self.dcli.info()
+        # # Test configuration for docker-machine. We need a way
+        # # to set the sockets file if on linux.
+        # # Get command line arguments for DOCKER HOST
+        # docker_host = os.environ["DOCKER_HOST"]
+        # docker_cert_path = os.environ["DOCKER_CERT_PATH"]
+        # docker_machine_name = os.environ["DOCKER_MACHINE_NAME"]
+        #
+        # # Build tls information
+        #
+        # tls_config = tls.TLSConfig(
+        #     client_cert=(os.path.join(docker_cert_path, 'cert.pem'), os.path.join(docker_cert_path,'key.pem')),
+        #     ca_cert=os.path.join(docker_cert_path, 'ca.pem'),
+        #     verify=True,
+        #     assert_hostname = False
+        # )
+        # # Replace tcp: with https: in docker host.
+        # docker_host_https = docker_host.replace("tcp","https")
+        # self.dcli = client.scClient(base_url=docker_host_https, tls=tls_config)
+        # #print self.dcli.info()
+
     def sanity_check(self):
         """sanity_check checks existence and executability of docker."""
         if self.location is None:
@@ -186,25 +191,16 @@ class DockerCli:
         else:
             new_name = new_name_tag
             new_tag = ''
-        print new_name
-        #
-        file = capture_stdout("docker exec " + container_id + " ls /SmartContainer/")
-        for line in file.stdout:
-            if self.provfilename in line:
-                hasProv = True
-        if hasProv:
+        if self.hasProv(container_id,self.provfilename,self.provfilepath):
             #Retrieve provenance file from the container
-            copy_cmd =  str(self.location) + ' cp ' + container_id + ":/SmartContainer/" + self.provfilename + " ."
-            rm_container = Command(copy_cmd)
-            rm_container.run()
+            self.fileCopyOut(self.location, container_id,self.provfilename, self.provfilepath)
             #Append provenance data to file
-            self.add_prov_data(container_id)
+            self.scmd.appendData(self.provfilename)
             #Copy provenance file back to the container
-            copy_cmd =  str(self.location) + ' cp ' + self.provfilename + " " + container_id + ":/SmartContainer/" + self.provfilename
-            rm_container = Command(copy_cmd)
-            rm_container.run()
+            self.fileCopyIn(self.location, container_id, self.provfilename, self.provfilepath)
             #Remove the local copy of the provenance file
             os.remove(self.provfilename)
+            #Commit container changes
             self.container_save_as(container_id, new_name, new_tag)
             #Build new label string... information from Chuck needed.
             new_label_string = provinator.get_commit_label()
@@ -235,13 +231,22 @@ class DockerCli:
         #print 'CID:' + container_id
         #print 'commit'
 
-    def add_prov_data(self,container_id):
-        with open('SCProv.jsonld', 'a') as provfile:
-            # provfile.write('<sc:' + str(random.getrandbits(32)) + '> a prov:Image ;\n')
-            # provfile.write('\trdfs: label "image updated programmatically"\n')
-            # provfile.write('\tprov:wasAttributedTo <http://orcid.org/0000-0003-4091-6059>;\n')
-            # provfile.write('\tprov:wasGeneratedBy <sc:' + str(self.get_containerImage(container_id)) + '>.\n')
-            provfile.write(provinator.get_commit_data())
+    def fileCopyOut(self, dockerlocation, containerid, filename, path):
+        copy_cmd =  str(dockerlocation) + ' cp ' + containerid + ":" + path + filename + " ."
+        thisCommand = Command(copy_cmd)
+        thisCommand.run()
+
+    def fileCopyIn(self, dockerlocation, containerid, filename, path):
+        copy_cmd =  str(dockerlocation) + ' cp '+ filename + " " + containerid + ":" + path + filename
+        thisCommand = Command(copy_cmd)
+        thisCommand.run()
+
+    def hasProv(self, containerid, filename, path):
+        file = capture_stdout("docker exec " + containerid + " ls " + path)
+        for line in file.stdout:
+            if filename in line:
+                return True
+        return False
 
     def put_label_image(self, label):
         """put_label attaches json metadata to smartcontainer label"""
