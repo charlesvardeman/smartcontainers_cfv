@@ -13,10 +13,10 @@ before_install:
 
 # command to install dependencies
 install:
-    - "pip install -r requirements.txt"
+    - "pip install tox-travis"
 
 #run tests
 script:
     - docker version
     - docker info
-    - py.test -v
+    - tox

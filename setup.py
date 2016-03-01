@@ -3,6 +3,30 @@ Sample project to be edited.
 """
 from pip.req import parse_requirements
 from setuptools import find_packages, setup
+from setuptools.command.test import test as TestCommand
+import sys
+
+
+class Tox(TestCommand):
+    user_options = [('tox-args=', 'a', "Arguments to pass to tox")]
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.tox_args = None
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+    def run_tests(self):
+        #import here, cause outside the eggs aren't loaded
+        import tox
+        import shlex
+        args = self.tox_args
+        if args:
+            args = shlex.split(self.tox_args)
+        errno = tox.cmdline(args=args)
+        sys.exit(errno)
+
+
 
 dependencies = ['click==4.1', 'rdflib', 'rdflib-jsonld', 'sarge', 'orcid',
                 'orcidfind', 'pyparsing', 'pytz', 'requests==2.7.0', 'docker-py']
@@ -24,6 +48,8 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=dependencies,
+    tests_require=['tox'],
+    cmdclass = {'test': Tox},
     entry_points={
         'console_scripts': [
             'sc= sc.cli:cli',
