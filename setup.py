@@ -5,7 +5,18 @@ from pip.req import parse_requirements
 from setuptools import find_packages, setup
 from setuptools.command.test import test as TestCommand
 import sys
+import os
 
+
+# Workaround for development under Vagrant using vbox shared directories
+# Hard links aren't allowed which breaks setup.
+# Is a quick hack that fixes the issue just under vagrant with vbox
+# From stackoverflow:
+# https://stackoverflow.com/questions/7719380/python-setup-py-sdist-error-operation-not-permitted
+# if you are not using vagrant, just delete os.link directly,
+# The hard link only saves a little disk space, so you should not care
+if os.environ.get('USER','') == 'vagrant':
+    del os.link
 
 class Tox(TestCommand):
     user_options = [('tox-args=', 'a', "Arguments to pass to tox")]

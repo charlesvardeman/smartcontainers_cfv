@@ -1,5 +1,6 @@
 import pytest
 import os
+from sys import platform as _platform
 
 # Test code that discovers docker command
 def test_find_docker():
@@ -24,12 +25,15 @@ def test_docker_version():
 def test_check_docker_connection():
     from sc import dockercli
     dockertester = dockercli.DockerCli("--help")
-    docker_host = os.environ["DOCKER_HOST"]
-    with pytest.raises(dockercli.DockerServerError):
-        os.environ["DOCKER_HOST"] = "tcp://127.0.0.1:1000"
+    if _platform == "darwin":
+        docker_host = os.environ["DOCKER_HOST"]
+        with pytest.raises(dockercli.DockerServerError):
+            os.environ["DOCKER_HOST"] = "tcp://127.0.0.1:1000"
+            dockertester.check_docker_connection()
+        os.environ["DOCKER_HOST"] = docker_host
         dockertester.check_docker_connection()
-    os.environ["DOCKER_HOST"] = docker_host
-    dockertester.check_docker_connection()
+    else:
+        dockertester.check_docker_connection()
 
 # Test all sanity checks to make sure docker is there.
 def test_sanity():
